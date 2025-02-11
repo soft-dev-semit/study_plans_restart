@@ -11,6 +11,7 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
+@ToString
 @Table(name = "specialities")
 public class Specialty {
 	@Id
@@ -19,7 +20,9 @@ public class Specialty {
 	@Column(nullable = false, length = 10)
 	private String code;
 	@Column(nullable = false)
+	private String code_name;
 	private String name;
+	private int number;
 
 	@ToString.Exclude
 	@OneToMany(mappedBy = "specialty",cascade = CascadeType.ALL,fetch = FetchType.EAGER)

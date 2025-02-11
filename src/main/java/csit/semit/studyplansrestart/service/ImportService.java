@@ -1,20 +1,37 @@
 package csit.semit.studyplansrestart.service;
 
-import csit.semit.studyplansrestart.config.ExcelUtils;
-import csit.semit.studyplansrestart.dto.*;
-import lombok.AllArgsConstructor;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.poi.EncryptedDocumentException;
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import csit.semit.studyplansrestart.config.ExcelUtils;
+import csit.semit.studyplansrestart.dto.CreateCurriculumDTO;
+import csit.semit.studyplansrestart.dto.CreateDisciplineDTO;
+import csit.semit.studyplansrestart.dto.CreateFacultyDTO;
+import csit.semit.studyplansrestart.dto.CreateSpecialtyDTO;
+import csit.semit.studyplansrestart.dto.DisciplineCurriculumDTO;
+import csit.semit.studyplansrestart.dto.StringCellDTO.CreditsInfo;
+import csit.semit.studyplansrestart.dto.StringCellDTO.ExamsInfo;
+import lombok.AllArgsConstructor;
 
 @Service
 @AllArgsConstructor
@@ -27,6 +44,7 @@ public class ImportService {
     SemesterService semesterService;
     DisciplineCurriculumService disciplineCurriculumService;
     ModelMapper modelMapper;
+    
     public void readExelFile() {
         String filePath =  "/Users/maksympol/Downloads/1 курс/КН-423.xlsx";
         Long curriculumId = null;
@@ -59,26 +77,39 @@ public class ImportService {
         for (int i = 11; i <= planSheet.getLastRowNum(); i++) {
             Row row = planSheet.getRow(i);
             if(row != null) {
+                List<String> exeptionList = Arrays.asList(
+                        "Обов'язкові освітні компоненти",
+                        "Загальна підготовка",
+                        "Спеціальна (фахова) підготовка",
+                        "Вибіркові освітні компоненти",
+                        "Профільна підготовка"
+                );
                 String shortNameCell = ExcelUtils.getStringCellValue(row.getCell(0, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK));
                 String nameCell = ExcelUtils.getStringCellValue(row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK));
                 if ("Загальна кількість за термін підготовки".equals(nameCell)) {
                     break;
                 }
+                boolean isExeption = exeptionList.contains(nameCell) || nameCell.contains("Профільований пакет дисциплін");
                 if (nameCell != null  && shortNameCell != null) {
                     long discipline_id = disciplineService.create(new CreateDisciplineDTO(nameCell, shortNameCell));
-                    long discipline_curriculum_id = disciplineCurriculumService.create(new DisciplineCurriculumDTO(
-                            ExcelUtils.getNumberCellValue(row.getCell(9, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)),
-                            ExcelUtils.getNumberCellValue(row.getCell(8, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)),
-                            ExcelUtils.getNumberCellValue(row.getCell(10, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)),
-                            ExcelUtils.getStringCellValue(row.getCell(4, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)),
-                            nameCell, curriculumService.getById(curriculum_id),disciplineService.findById(discipline_id)));
-                    int semestr = 1;
-//                    int exams = ExcelUtils.getNumberCellValue(row.getCell(2 , Row.MissingCellPolicy.CREATE_NULL_AS_BLANK));
-                    Object[] credits = ExcelUtils.getCreditsCell(row.getCell(3, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK));
-                    Object[] exams = ExcelUtils.getExamCell(row.getCell(2, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK));
-                    for (int j = 0; j <= 14; j += 2) {
-                       semesterService.processSemester(row,discipline_curriculum_id,semestr,credits, exams);
-                        ++semestr;
+                    if (isExeption){
+                        disciplineCurriculumService.create(new DisciplineCurriculumDTO(
+                               0, 0, 0, "", "",
+                                curriculumService.getById(curriculum_id),disciplineService.findById(discipline_id)));
+                    }else {
+                        long discipline_curriculum_id = disciplineCurriculumService.create(new DisciplineCurriculumDTO(
+                                ExcelUtils.getNumberCellValue(row.getCell(9, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)),
+                                ExcelUtils.getNumberCellValue(row.getCell(8, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)),
+                                ExcelUtils.getNumberCellValue(row.getCell(10, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)),
+                                ExcelUtils.getStringCellValue(row.getCell(4, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)),
+                                nameCell, curriculumService.getById(curriculum_id),disciplineService.findById(discipline_id)));
+                        int semestr = 1;
+                        ExamsInfo exams = ExcelUtils.getExamCell(row.getCell(2, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK));
+                        CreditsInfo credits = ExcelUtils.getCreditsCell(row.getCell(3, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK));
+                        for (int j = 0; j <= 14; j += 2) {
+                            semesterService.processSemester(row,discipline_curriculum_id, semestr, credits, exams);
+                            ++semestr;
+                        }
                     }
                 }
             }
@@ -90,12 +121,14 @@ public class ImportService {
         for(int i = 0; i <= specialitiesSheet.getLastRowNum(); i++) {
             Row row = specialitiesSheet.getRow(i);
             if(row != null) {
-                Cell cell = row.getCell(0, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
-                if(cell.getCellType() == CellType.STRING) {
-                    String cellValue = cell.getStringCellValue();
+                Cell codeCell = row.getCell(0, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+                Cell nameCell = row.getCell(1);
+                Cell numberCell = row.getCell(2);
+                if(codeCell.getCellType() == CellType.STRING && nameCell.getCellType() == CellType.STRING &&  numberCell.getCellType() == CellType.NUMERIC) {
+                    String cellValue = codeCell.getStringCellValue();
                     Matcher matcher = pattern.matcher(cellValue);
                     if(matcher.matches()) {
-                         specialtyService.create(new CreateSpecialtyDTO(matcher.group(1), matcher.group(2)));
+                         specialtyService.create(new CreateSpecialtyDTO(matcher.group(1), matcher.group(2),nameCell.getStringCellValue(),(int) numberCell.getNumericCellValue()));
                     }
                 }
             }
@@ -105,6 +138,8 @@ public class ImportService {
     public Long addCurriculmFromExel(Sheet plansSheet) {
         Long specialityID = null;
         int year = 0;
+        String code = "";
+        int number = 0;
         for (int i = 0; i <= plansSheet.getLastRowNum(); i++) {
             Row row = plansSheet.getRow(i);
             if (row != null) {
@@ -112,14 +147,19 @@ public class ImportService {
                 if(findCell.equals("Шифр спеціальністі")) {
                     Cell cellCode = row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
                     if (cellCode != null && cellCode.getCellType() == CellType.STRING ) {
-                        specialityID = specialtyService.findByCode(cellCode.getStringCellValue()).getId();
+                       code = cellCode.getStringCellValue();
                     }
+                }
+                if(findCell.equals("Номер освітньої програми")) {
+                    Cell cellCode = row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+                    number = ExcelUtils.getNumberCellValue(cellCode);
                 }
                 if (findCell.equals("Рік (останні 2 цифри)")) {
                     year = ExcelUtils.getNumberCellValue(row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK));
                 }
             }
         }
+        specialityID = specialtyService.findByName(code,number);
         return curriculumService.create(new CreateCurriculumDTO("file.url", "approve_URL",year ,specialityID,1));
     }
 
@@ -148,6 +188,19 @@ public class ImportService {
                 facultyService.create(new CreateFacultyDTO(String.valueOf(departmentNumber),department));
             }
         }
+    }
+
+    public String getCode() throws IOException {
+        String filePath =  "/Users/maksympol/Downloads/1 курс/КН-423.xlsx";
+        Workbook workbook = WorkbookFactory.create(new File(filePath));
+        Sheet sheet = workbook.getSheet("Титул");
+        for (Row row : sheet) {
+            for (Cell cell : row) {
+                System.out.print(cell.getStringCellValue() + "\t");
+            }
+            System.out.println();
+        }
+        return "Ok";
     }
 
 }

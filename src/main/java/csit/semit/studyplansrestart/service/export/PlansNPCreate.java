@@ -1,48 +1,27 @@
-package csit.semit.studyplansrestart.service;
-
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+package csit.semit.studyplansrestart.service.export;
 
 import csit.semit.studyplansrestart.config.ExcelUtils;
 import csit.semit.studyplansrestart.dto.DisciplineCurriculumWithDiscipline;
 import csit.semit.studyplansrestart.entity.Semester;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.Font;
-import org.apache.poi.ss.usermodel.HorizontalAlignment;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.VerticalAlignment;
-import org.apache.poi.ss.usermodel.Workbook;
+import csit.semit.studyplansrestart.service.DisciplineCurriculumService;
+import csit.semit.studyplansrestart.service.DisciplineService;
+import csit.semit.studyplansrestart.service.SemesterService;
+import lombok.AllArgsConstructor;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 
-import lombok.AllArgsConstructor;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @AllArgsConstructor
-public class ExportService {
+public class PlansNPCreate {
     DisciplineService disciplineService;
     DisciplineCurriculumService disciplineCurriculumService;
     SemesterService semesterService;
-
-    public void exportExcel(long curriculum_id) {
-        Workbook workbook = new XSSFWorkbook();
-        Sheet plansSheet = createHeader(workbook);
-        fillCell(plansSheet,curriculum_id);
-        try (FileOutputStream fileOut = new FileOutputStream("example.xlsx")) {
-            workbook.write(fileOut);
-            workbook.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     public static Sheet createHeader(Workbook workbook) {
-        
+
         Sheet sheet = workbook.createSheet("План НП");
         sheet.setColumnWidth(1, 612 * 256 / 7);
         sheet.setColumnWidth(0, 186 * 256 / 7);
@@ -58,7 +37,7 @@ public class ExportService {
         font.setBold(true);
         font.setFontHeightInPoints((short) 26);
 
-        // Стиль для повернутого текста 
+        // Стиль для повернутого текста
         CellStyle rotatedShifrStyle = workbook.createCellStyle();
         rotatedShifrStyle.setFont(fontRotate);
         rotatedShifrStyle.setRotation((short) 90);
@@ -66,7 +45,7 @@ public class ExportService {
         rotatedShifrStyle.setVerticalAlignment(VerticalAlignment.CENTER);
         rotatedShifrStyle.setWrapText(true);
 
-        // Стиль для повернутого текста 
+        // Стиль для повернутого текста
         CellStyle rotatedStyle = workbook.createCellStyle();
         rotatedStyle.setFont(fontRotate);
         rotatedStyle.setRotation((short) 90);
@@ -76,17 +55,22 @@ public class ExportService {
 
         /// Центрированный стиль
         CellStyle centeredStyle = workbook.createCellStyle();
-        centeredStyle.setAlignment(HorizontalAlignment.CENTER); 
+        centeredStyle.setAlignment(HorizontalAlignment.CENTER);
         centeredStyle.setVerticalAlignment(VerticalAlignment.CENTER);
         centeredStyle.setFont(font);
 
         /// Центрированный стиль для заголовков
         CellStyle centeredHeaderStyle = workbook.createCellStyle();
-        centeredHeaderStyle.setAlignment(HorizontalAlignment.CENTER); 
+        centeredHeaderStyle.setAlignment(HorizontalAlignment.CENTER);
         centeredHeaderStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-        centeredHeaderStyle.setFont(fontRotate); 
+        centeredHeaderStyle.setFont(fontRotate);
         centeredHeaderStyle.setWrapText(true);
 
+
+        Row row = sheet.createRow(0);
+        row.createCell(0).setCellFormula("'Основні дані'!A25");
+        row.createCell(20).setCellFormula("'Основні дані'!B1");
+        sheet.addMergedRegion(new CellRangeAddress(0,0,20,28));
 
         Row titleRow = sheet.createRow(1);
         Cell titleCell = titleRow.createCell(0);
@@ -133,7 +117,7 @@ public class ExportService {
         sheet.addMergedRegion(new CellRangeAddress(4, 9, 4, 4));
 
         subHeaderRow.createCell(6).setCellValue(" ");
-        subHeaderRow.getCell(6).setCellStyle(rotatedStyle); 
+        subHeaderRow.getCell(6).setCellStyle(rotatedStyle);
         sheet.addMergedRegion(new CellRangeAddress(4, 9, 6, 6));
 
         subHeaderRow.createCell(7).setCellValue("Аудиторних");
@@ -157,13 +141,13 @@ public class ExportService {
         subHeaderRow.getCell(24).setCellStyle(centeredHeaderStyle);
         sheet.addMergedRegion(new CellRangeAddress(4, 4, 24, 27));
 
-        /// Пятая строка 
+        /// Пятая строка
         Row subHeaderRow2 = sheet.createRow(5);
         subHeaderRow2.createCell(7).setCellValue("Всього");
         subHeaderRow2.getCell(7).setCellStyle(rotatedStyle);
         sheet.addMergedRegion(new CellRangeAddress(5, 9, 7, 7));
         subHeaderRow2.createCell(8).setCellValue("у тому числі");
-        subHeaderRow2.getCell(8).setCellStyle(centeredHeaderStyle);   
+        subHeaderRow2.getCell(8).setCellStyle(centeredHeaderStyle);
         sheet.addMergedRegion(new CellRangeAddress(5, 6, 8, 10));
         subHeaderRow2.createCell(12).setCellValue("С е м е с т р и");
         subHeaderRow2.getCell(12).setCellStyle(centeredHeaderStyle);
@@ -179,10 +163,19 @@ public class ExportService {
 
         /// Седьмая строка
         Row subHeaderRow4 = sheet.createRow(7);
+        subHeaderRow4.createCell(8).setCellValue("лекції");
+        subHeaderRow4.getCell(8).setCellStyle(rotatedStyle);
+        sheet.addMergedRegion(new CellRangeAddress(7, 9, 8, 8));
+        subHeaderRow4.createCell(9).setCellValue("лабораторні");
+        subHeaderRow4.getCell(9).setCellStyle(rotatedStyle);
+        sheet.addMergedRegion(new CellRangeAddress(7, 9, 9, 9));
+        subHeaderRow4.createCell(10).setCellValue("практичні");
+        subHeaderRow4.getCell(10).setCellStyle(rotatedStyle);
+        sheet.addMergedRegion(new CellRangeAddress(7, 9, 10, 10));
         subHeaderRow4.createCell(12).setCellValue("Кількість тижнів в семестрі");
         subHeaderRow4.getCell(12).setCellStyle(centeredHeaderStyle);
         sheet.addMergedRegion(new CellRangeAddress(7, 7, 12, 27));
-        
+
         /// Восьмая строка
         Row subHeaderRow5 = sheet.createRow(8);
         for (int i = 12; i <= 27; i += 2) {
@@ -208,90 +201,164 @@ public class ExportService {
         Row numberRow = sheet.createRow(10);
         for (int i = 0; i <= 28; i++) {
             numberRow.createCell(i).setCellValue(i + 1);
+            numberRow.getCell(i).setCellStyle(centeredHeaderStyle);
         }
         return sheet;
     }
 
-    public  void fillCell(Sheet sheet,long curriculum_id) {
+    public void fillCell(Sheet sheet, long curriculum_id) {
         List<DisciplineCurriculumWithDiscipline> plansInfo = disciplineCurriculumService.getPlansInfo(curriculum_id);
         int index = 11;
-        int rowNum = index + 1;
-        long ZPcount = plansInfo.stream().filter(d -> d.getDiscipline() != null && d.getDiscipline().getName().startsWith("ЗП")).count();
+        int RDrow = 0;
+        int secondComponent = 0;
+        int M22 = 0;
+        long ZPcount = plansInfo.stream().filter(d -> d.getDiscipline() != null && d.getDiscipline().getShort_name().startsWith("ЗП")).count();
+        long VDcount = plansInfo.stream().filter(d -> d.getDiscipline() != null && d.getDiscipline().getShort_name().startsWith("ВД")).count();
         long SPcount = plansInfo.stream().dropWhile(d -> d.getDiscipline() == null || !"Спеціальна (фахова) підготовка".equals(d.getDiscipline().getName()))
                 .takeWhile(d -> d.getDiscipline() == null || !"Атестація*".equals(d.getDiscipline().getName())).count();
         long count = plansInfo.stream().dropWhile(d -> d.getDiscipline() == null || !"Загальна підготовка".equals(d.getDiscipline().getName()))
                 .takeWhile(d -> d.getDiscipline() == null || !"Спеціальна (фахова) підготовка".equals(d.getDiscipline().getName())).count();
         long number = plansInfo.stream().dropWhile(d -> d.getDiscipline() == null || !"Профільна підготовка".equals(d.getDiscipline().getName()))
                 .takeWhile(d -> d.getDiscipline() == null || !"Дисципліни вільного вибору студента профільної підготовки згідно переліку".equals(d.getDiscipline().getName())).count();
+        long RD1count = plansInfo.stream().dropWhile(d -> d.getDiscipline() == null || !d.getDiscipline().getName().startsWith("Профільований пакет дисциплін 01"))
+                .takeWhile(d -> d.getDiscipline() == null || !d.getDiscipline().getName().startsWith("Профільований пакет дисциплін 02")).count();
+        long RD2count = plansInfo.stream().dropWhile(d -> d.getDiscipline() == null || !d.getDiscipline().getName().startsWith("Профільований пакет дисциплін 02"))
+                .takeWhile(d -> d.getDiscipline() == null || !d.getDiscipline().getName().startsWith("Профільований пакет дисциплін 03")).count();
+        long RD3count = plansInfo.stream().dropWhile(d -> d.getDiscipline() == null || !d.getDiscipline().getName().startsWith("Профільований пакет дисциплін 03"))
+                .takeWhile(d -> d.getDiscipline() == null || !d.getDiscipline().getName().equals("Дисципліни вільного вибору студента профільної підготовки згідно переліку")).count();
+
         for (DisciplineCurriculumWithDiscipline list : plansInfo) {
+            Row row = sheet.createRow(index);
             if("Обов'язкові освітні компоненти".equals(list.getDiscipline().getName())) {
-                Row row = sheet.createRow(index);
                 row.createCell(0).setCellValue(list.getDiscipline().getShort_name());
                 row.createCell(1).setCellValue(list.getDiscipline().getName());
-                ExcelUtils.fillHeadings(row,index + 2, index + (int) count + 1);
+                ExcelUtils.fillHeadings(row,index + 2, index + (int) count + 2);
+                index++;
+                continue;
             }
             if ("Спеціальна (фахова) підготовка".equals(list.getDiscipline().getName()) || "Загальна підготовка".equals(list.getDiscipline().getName())) {
-                Row row = sheet.createRow(index);
                 row.createCell(0).setCellValue(list.getDiscipline().getShort_name());
                 row.createCell(1).setCellValue(list.getDiscipline().getName());
-                int targetIndex = index + 2;
+                int targetIndex = index + 1;
                 if ("Загальна підготовка".equals(list.getDiscipline().getName())) {
                     targetIndex += (int) ZPcount;
                 } else {
                     targetIndex += (int) SPcount;
+                    M22 = index;
                 }
                 ExcelUtils.fillSubheading(row,index + 2, targetIndex);
+                index++;
+                continue;
             }
             if("Вибіркові освітні компоненти".equals(list.getDiscipline().getName())) {
-                Row row = sheet.createRow(index);
+                row.createCell(0).setCellValue(list.getDiscipline().getShort_name());
+                row.createCell(1).setCellValue(list.getDiscipline().getName());
                 ExcelUtils.fillSecondHeadings(row,index+2, (int)(index+number+2), (int)(index+number+3));
+                secondComponent = index+1;
+                index++;
+                continue;
             }
             if("Профільна підготовка".equals(list.getDiscipline().getName())) {
-                Row row = sheet.createRow(index);
-                row.createCell(5).setCellFormula("F" + index + 2);
-                row.createCell(6).setCellFormula("G" + index + 2);
-                row.createCell(7).setCellFormula("H" + index + 2);
-                row.createCell(8).setCellFormula("I" + index + 2);
-                row.createCell(9).setCellFormula("J" + index + 2);
-                row.createCell(10).setCellFormula("K" + index + 2);
-                row.createCell(11).setCellFormula("L" + index + 2);
-                row.createCell(16).setCellFormula("Q" + index + 2);
-                row.createCell(17).setCellFormula("R" + index + 2);
-                row.createCell(18).setCellFormula("S" + index + 2);
-                row.createCell(19).setCellFormula("T" + index + 2);
-                row.createCell(20).setCellFormula("U" + index + 2);
-                row.createCell(21).setCellFormula("V" + index + 2);
-                row.createCell(22).setCellFormula("W" + index + 2);
-                row.createCell(23).setCellFormula("X" + index + 2);
-                row.createCell(24).setCellFormula("Y" + index + 2);
-                row.createCell(25).setCellFormula("Z" + index + 2);
+                row.createCell(0).setCellValue(list.getDiscipline().getShort_name());
+                row.createCell(1).setCellValue(list.getDiscipline().getName());
+                row.createCell(5).setCellFormula("F" + (index + 2));
+                row.createCell(6).setCellFormula("G" + (index + 2));
+                row.createCell(7).setCellFormula("H" + (index + 2));
+                row.createCell(8).setCellFormula("I" + (index + 2));
+                row.createCell(9).setCellFormula("J" + (index + 2));
+                row.createCell(10).setCellFormula("K" + (index + 2));
+                row.createCell(11).setCellFormula("L" + (index + 2));
+                row.createCell(16).setCellFormula("Q" + (index + 2));
+                row.createCell(17).setCellFormula("R" + (index + 2));
+                row.createCell(18).setCellFormula("S" + (index + 2));
+                row.createCell(19).setCellFormula("T" + (index + 2));
+                row.createCell(20).setCellFormula("U" + (index + 2));
+                row.createCell(21).setCellFormula("V" + (index + 2));
+                row.createCell(22).setCellFormula("W" + (index + 2));
+                row.createCell(23).setCellFormula("X" + (index + 2));
+                row.createCell(24).setCellFormula("Y" + (index + 2));
+                row.createCell(25).setCellFormula("Z" + (index + 2));
+                index++;
+                continue;
             }
-            List<Integer> examSemesters = new ArrayList<>();
-            List<Integer> creditSemesters = new ArrayList<>();
-            Row row = sheet.createRow(index);
-            row.createCell(0).setCellValue(list.getDiscipline().getShort_name());
-            row.createCell(1).setCellValue(list.getDiscipline().getName());
-            row.createCell(2).setCellValue(ExcelUtils.formatSemesters(examSemesters));
-            row.createCell(3).setCellValue(ExcelUtils.formatSemesters(creditSemesters));
-            row.createCell(4).setCellValue(list.getIndividualTaskType());
-            ExcelUtils.addFormulaPlansCell(rowNum, row);
-            row.createCell(8).setCellValue(list.getLecHours());
-            row.createCell(9).setCellValue(list.getLabHours());
-            row.createCell(10).setCellValue(list.getPracticeHours());
-            for (Semester semester : list.getSemesters()) {
-                row.createCell(semester.getSemester() + 11).setCellValue(semester.getAuditHours());
-                row.createCell(semester.getSemester() + 12).setCellValue(semester.getCreditsECTS());
-                if (semester.isHasExam()) {
-                    examSemesters.add(semester.getSemester());
-                }
-                if (semester.isHasCredit()) {
-                    creditSemesters.add(semester.getSemester());
-                }
+            if(list.getDiscipline().getName().startsWith("Профільований пакет дисциплін 01")){
+                row.createCell(0).setCellValue(list.getDiscipline().getShort_name());
+                row.createCell(1).setCellValue(list.getDiscipline().getName());
+                ExcelUtils.fillSecondSubheading(row,index+2,(int) RD1count + index);
+                RDrow = index+1;
+                index++;
+                continue;
             }
-
+            if(list.getDiscipline().getName().startsWith("Профільований пакет дисциплін 02") || list.getDiscipline().getName().startsWith("Профільований пакет дисциплін 03")) {
+                row.createCell(0).setCellValue(list.getDiscipline().getShort_name());
+                row.createCell(1).setCellValue(list.getDiscipline().getName());
+                int targetIndex = index;
+                if ("Загальна підготовка".equals(list.getDiscipline().getName())) {
+                    targetIndex += (int) RD2count;
+                } else {
+                    targetIndex += (int) RD3count;
+                }
+                ExcelUtils.fillProfilePack(row,index+2, targetIndex, RDrow);
+                index++;
+                continue;
+            }
+            if("2.2".equals(list.getDiscipline().getShort_name())) {
+                int rowNum = index + 1;
+                row.createCell(0).setCellValue(list.getDiscipline().getShort_name());
+                row.createCell(1).setCellValue(list.getDiscipline().getName());
+                row.createCell(5).setCellFormula("N" + rowNum + "+P" + rowNum + "+R" + rowNum + "+T" + rowNum + "+V" + rowNum + "+X" + rowNum + "+Z" + rowNum + "+AB" + rowNum);
+                row.createCell(6).setCellFormula("F" + rowNum + "*30");
+                row.createCell(7).setCellFormula("(M" + rowNum + "*Титул!BC$19)+(O" + rowNum + "*Титул!BD$19)+(Q" + rowNum + "*Титул!BE$19)+(S" + rowNum + "*Титул!BF$19)+(U" + rowNum + "*Титул!BG$19)+(W" + rowNum + "*Титул!BH$19)+(Y" + rowNum + "*Титул!BI$19)+(AA" + rowNum + "*Титул!BJ$19)");
+                row.createCell(11).setCellFormula("G"+rowNum + "-H" +rowNum );
+                fillSemesterCell(row,list);
+                index++;
+                continue;
+            }
+            if("2.3".equals(list.getDiscipline().getShort_name())) {
+                int firstNumber = index + 2;
+                int secondNumber = (int) VDcount + index + 1;
+                row.createCell(0).setCellValue(list.getDiscipline().getShort_name());
+                row.createCell(1).setCellValue(list.getDiscipline().getName());
+                row.createCell(5).setCellFormula("SUM(F" + firstNumber + ":F" + secondNumber + ")");
+                row.createCell(6).setCellFormula("SUM(G" +firstNumber + ":G" + secondNumber + ")");
+                row.createCell(7).setCellFormula("SUM(H" + firstNumber + ":H" + secondNumber + ")");
+                row.createCell(11).setCellFormula("SUM(L" + firstNumber + ":L" + secondNumber + ")");
+                row.createCell(24).setCellFormula("SUM(Y" + firstNumber + ":Y" + secondNumber + ")");
+                row.createCell(25).setCellFormula("SUM(Z" + firstNumber + ":Z" + secondNumber + ")");
+                index++;
+                continue;
+            }
+            fillBasicCell(row,index, list);
             index++;
         }
-
+        ExcelUtils.fillLastRow(sheet,index,M22,secondComponent);
     }
 
+    public static void fillBasicCell(Row row ,int index, DisciplineCurriculumWithDiscipline list) {
+        row.createCell(0).setCellValue(list.getDiscipline().getShort_name());
+        row.createCell(1).setCellValue(list.getDiscipline().getName());
+        row.createCell(4).setCellValue(list.getIndividualTaskType());
+        ExcelUtils.addFormulaPlansCell(index + 1, row);
+        row.createCell(8).setCellValue(list.getLecHours());
+        row.createCell(9).setCellValue(list.getLabHours());
+        row.createCell(10).setCellValue(list.getPracticeHours());
+        fillSemesterCell(row,list);
+    }
+
+    public static void fillSemesterCell(Row row , DisciplineCurriculumWithDiscipline list) {
+        List<Integer> examSemesters = new ArrayList<>();
+        List<Integer> creditSemesters = new ArrayList<>();
+        for (Semester semester : list.getSemesters()) {
+            row.createCell(12 + (semester.getSemester() - 1) * 2).setCellValue(semester.getAuditHours());
+            row.createCell(12 + (semester.getSemester() - 1) * 2 + 1).setCellValue(semester.getCreditsECTS());
+            if (semester.isHasExam()) {
+                examSemesters.add(semester.getSemester());
+            }
+            if (semester.isHasCredit()) {
+                creditSemesters.add(semester.getSemester());
+            }
+        }
+        row.createCell(2).setCellValue(ExcelUtils.formatSemesters(examSemesters));
+        row.createCell(3).setCellValue(ExcelUtils.formatSemesters(creditSemesters));
+    }
 }

@@ -10,6 +10,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -25,17 +26,14 @@ public class SpecialtyService {
         return specialtyRepository.findById(specialty_id).orElseThrow(() -> new RuntimeException("wrong specialty_id"));
     }
 
-    public Specialty findByCode(String code) {
-        return specialtyRepository.findByCode(code).get(0);
+    public Long findByName(String code, int number) {
+        return specialtyRepository.findByCodeAndNumber(code, number).getId();
     }
 
     public Specialty create(CreateSpecialtyDTO specialtyDto) {
-        List<Specialty> existingSpecialties = specialtyRepository.findByCodeAndName(specialtyDto.getCode(), specialtyDto.getName());
-        if (existingSpecialties.isEmpty()) {
-            return specialtyRepository.save(modelMapper.map(specialtyDto, Specialty.class));
-        } else {
-            return null;
-        }
+        Optional<Specialty> specialty = specialtyRepository.findByCodeAndName(specialtyDto.getCode(), specialtyDto.getName());
+        return specialty.orElseGet(() -> specialtyRepository.save(modelMapper.map(specialtyDto, Specialty.class)));
+
     }
 
     public void deleteSpecialty(Long specialty_id) {
