@@ -1,6 +1,6 @@
 package csit.semit.studyplansrestart.service;
 
-import csit.semit.studyplansrestart.dto.CreateFacultyDTO;
+import csit.semit.studyplansrestart.dto.create.CreateFacultyDTO;
 import csit.semit.studyplansrestart.entity.Faculty;
 import csit.semit.studyplansrestart.repository.FacultyRepository;
 import lombok.AllArgsConstructor;

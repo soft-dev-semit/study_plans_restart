@@ -1,16 +1,17 @@
 package csit.semit.studyplansrestart.service;
 
-import csit.semit.studyplansrestart.config.ExcelUtils;
-import csit.semit.studyplansrestart.dto.CreateSemesterDTO;
-import csit.semit.studyplansrestart.dto.StringCellDTO.CreditsInfo;
-import csit.semit.studyplansrestart.dto.StringCellDTO.ExamsInfo;
-import csit.semit.studyplansrestart.entity.Semester;
-import csit.semit.studyplansrestart.repository.DisciplineCurriculumRepository;
-import csit.semit.studyplansrestart.repository.SemesterRepository;
-import lombok.AllArgsConstructor;
 import org.apache.poi.ss.usermodel.Row;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+
+import csit.semit.studyplansrestart.config.ExcelUtils;
+import csit.semit.studyplansrestart.dto.StringCellDTO.CreditsInfo;
+import csit.semit.studyplansrestart.dto.StringCellDTO.ExamsInfo;
+import csit.semit.studyplansrestart.dto.create.CreateSemesterDTO;
+import csit.semit.studyplansrestart.entity.HoursDiscSemester;
+import csit.semit.studyplansrestart.repository.DisciplineCurriculumRepository;
+import csit.semit.studyplansrestart.repository.SemesterRepository;
+import lombok.AllArgsConstructor;
 
 @Service
 @AllArgsConstructor
@@ -20,7 +21,7 @@ public class SemesterService {
     ModelMapper modelMapper;
 
     public Long create(CreateSemesterDTO semesterDTO) {
-        Semester semester = modelMapper.map(semesterDTO, Semester.class);
+        HoursDiscSemester semester = modelMapper.map(semesterDTO, HoursDiscSemester.class);
         return semesterRepository.save(semester).getId();
     }
 
@@ -33,21 +34,21 @@ public class SemesterService {
             newSemester.setAuditHours(auditHours);
             newSemester.setDiscipline_curriculum(disciplineCurriculumRepository.getReferenceById(discipline_curriculum_id));
             newSemester.setSemester(semestr);
-            if (credits.isHasCredits()) {
-                if (semestr >= credits.getFirstCredit() && (credits.getSecondCredit() == 0 || semestr <= credits.getSecondCredit())) {
+            if (credits.isHas()) {
+                if (semestr >= credits.getFirst() && (credits.getSecond() == 0 || semestr <= credits.getSecond())) {
                     newSemester.setHasCredit(true);
                 }
             } else {
-                if (semestr == credits.getFirstCredit()) {
+                if (semestr == credits.getFirst()) {
                     newSemester.setHasCredit(true);
                 }
             }
-            if (exams.isHasExams()) {
-                if (semestr >= exams.getFirstExam() && (exams.getSecondExam() == 0 || semestr <= exams.getSecondExam())) {
-                    newSemester.setHasCredit(true);
+            if (exams.isHas()) {
+                if (semestr >= exams.getFirst() && (exams.getSecond() == 0 || semestr <= exams.getSecond())) {
+                    newSemester.setHasExam(true);
                 }
             } else {
-                if (semestr == exams.getFirstExam()) {
+                    if (semestr == exams.getFirst()) {
                     newSemester.setHasExam(true);
                 }
             }

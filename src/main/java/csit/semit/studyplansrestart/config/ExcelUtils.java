@@ -1,13 +1,26 @@
 package csit.semit.studyplansrestart.config;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.BorderStyle;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.DateUtil;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.VerticalAlignment;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
 
-import csit.semit.studyplansrestart.dto.StringCellDTO.CreditsInfo;
-import csit.semit.studyplansrestart.dto.StringCellDTO.ExamsInfo;
+import csit.semit.studyplansrestart.dto.StringCellDTO.GetExamOrCreditsCellDTO;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class ExcelUtils {
 
     public static String getStringCellValue(Cell cell) {
@@ -68,46 +81,53 @@ public class ExcelUtils {
         }
     }
 
-    public static CreditsInfo getCreditsCell(Cell cell) {
-        int firstCredit = 0;
-        int secondCredit = 0;
-        boolean hasCredits = false;
+    public static GetExamOrCreditsCellDTO getCreditsAndExamsCell(Cell cell) {
+        int first = 0;
+        int second = 0;
+        boolean has = false;
 
-        if (cell.getCellType() == CellType.STRING) {
-            String cellValue = cell.getStringCellValue().trim();
-            if (cellValue.contains("-")) {
-                String[] parts = cellValue.split("-");
-                firstCredit = Integer.parseInt(parts[0].trim());
-                secondCredit = Integer.parseInt(parts[1].trim());
-                hasCredits = true;
-            } else {
-                firstCredit = Integer.parseInt(cellValue);
+        try {
+            if (cell == null) {
+                return new GetExamOrCreditsCellDTO(0, 0, false);
             }
-        } else if (cell.getCellType() == CellType.NUMERIC) {
-            firstCredit = (int) cell.getNumericCellValue();
+
+            if (cell.getCellType() == CellType.STRING) {
+                String cellValue = getStringValueWithoutSpaces(cell);
+
+                if (cellValue.isEmpty()) {
+                    return new GetExamOrCreditsCellDTO(0, 0, false);
+                }
+                if (cellValue.contains("-")) {
+                    String[] parts = cellValue.split("-");
+                    try {
+                        first = Integer.parseInt(parts[0].trim());
+                        second = Integer.parseInt(parts[1].trim());
+                        has = true;
+                    } catch (NumberFormatException e) {
+                        log.warn("Failed to parse credits from string: '{}', parts: {}", cellValue, Arrays.toString(parts));
+                        return new GetExamOrCreditsCellDTO(0, 0, false);
+                    }
+                } else {
+                    try {
+                        first = Integer.parseInt(cellValue);
+                    } catch (NumberFormatException e) {
+                        log.warn("Failed to parse credit from string: '{}'", cellValue);
+                        return new GetExamOrCreditsCellDTO(0, 0, false);
+                    }
+                }
+            } else if (cell.getCellType() == CellType.NUMERIC) {
+                first = (int) cell.getNumericCellValue();
+            }
+
+            return new GetExamOrCreditsCellDTO(first, second, has);
+        } catch (Exception e) {
+            log.error("Error processing cell: {}", cell, e);
+            return new GetExamOrCreditsCellDTO(0, 0, false);
         }
-        return new CreditsInfo(firstCredit, secondCredit, hasCredits);
     }
 
-    public static ExamsInfo getExamCell(Cell cell) {
-        int firstExam = 0;
-        int secondExam = 0;
-        boolean hasExams = false;
-
-        if (cell.getCellType() == CellType.STRING) {
-            String cellValue = cell.getStringCellValue().trim();
-            if (cellValue.contains("-")) {
-                String[] parts = cellValue.split("-");
-                firstExam = Integer.parseInt(parts[0].trim());
-                secondExam = Integer.parseInt(parts[1].trim());
-                hasExams = true;
-            } else {
-                firstExam = Integer.parseInt(cellValue);
-            }
-        } else if (cell.getCellType() == CellType.NUMERIC) {
-            firstExam = (int) cell.getNumericCellValue();
-        }
-        return new ExamsInfo(firstExam, secondExam, hasExams);
+    public static String getStringValueWithoutSpaces(Cell stringCell) {
+        return stringCell.getStringCellValue().replaceAll("[\\s\\u00A0]+", " ").trim();    
     }
 
     public static void addFormulaPlansCell(int rowNum, Row row) {

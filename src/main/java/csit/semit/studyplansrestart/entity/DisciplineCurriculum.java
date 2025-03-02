@@ -33,5 +33,5 @@ public class DisciplineCurriculum {
 
 	@ToString.Exclude
 	@OneToMany(mappedBy = "disciplineCurriculum", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-	List<Semester> semesters = new LinkedList<>();
+	List<HoursDiscSemester> semesters = new LinkedList<>();
 }

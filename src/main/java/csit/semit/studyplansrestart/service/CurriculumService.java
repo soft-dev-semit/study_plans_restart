@@ -1,15 +1,16 @@
 package csit.semit.studyplansrestart.service;
 
-import csit.semit.studyplansrestart.dto.CreateCurriculumDTO;
+import java.util.List;
+
+import org.modelmapper.ModelMapper;
+import org.springframework.stereotype.Service;
+
+import csit.semit.studyplansrestart.dto.create.CreateCurriculumDTO;
 import csit.semit.studyplansrestart.entity.Curriculum;
 import csit.semit.studyplansrestart.repository.CurriculumRepository;
 import csit.semit.studyplansrestart.repository.DepartmentRepository;
 import csit.semit.studyplansrestart.repository.SpecialtyRepository;
 import lombok.AllArgsConstructor;
-import org.modelmapper.ModelMapper;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -51,4 +52,8 @@ public class CurriculumService {
         }
         return curriculumRepository.save(curriculum);
     }
+
+    // public List<Object[]> getCurriculumIdAndGroupName() {
+    //     return curriculumRepository.getCurriculumIdAndGroupName();
+    // }
 }
