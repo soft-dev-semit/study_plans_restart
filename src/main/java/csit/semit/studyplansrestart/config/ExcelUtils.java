@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import csit.semit.studyplansrestart.service.importPackage.ImportService;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -19,9 +20,11 @@ import org.apache.poi.ss.util.CellRangeAddress;
 
 import csit.semit.studyplansrestart.dto.StringCellDTO.GetExamOrCreditsCellDTO;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class ExcelUtils {
+    private static final Logger log = LoggerFactory.getLogger(ImportService.class);
 
     public static String getStringCellValue(Cell cell) {
         if (cell == null) {

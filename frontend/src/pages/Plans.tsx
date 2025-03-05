@@ -1,4 +1,4 @@
-import * as React from 'react'
+import Box from '@mui/material/Box'
 import Paper from '@mui/material/Paper'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
@@ -8,11 +8,10 @@ import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import { styled } from '@mui/material/styles'
 import { useEffect, useState } from 'react'
-import { Requests } from '../api/Requests'
-import FillRow from '../components/FillRow'
 import { useParams } from 'react-router-dom'
+import { Requests } from '../api/Requests'
 import CurriculumList from '../components/CurriculumList'
-import Box from '@mui/material/Box'
+import FillRow from '../components/FillRow'
 
 const RotatedCell = styled(TableCell)(({ theme }) => ({
 	textAlign: 'center',
@@ -45,16 +44,17 @@ interface Curriculum {
 }
 
 export default function Plans() {
-	const [plans, setPlans] = useState<any[]>([])
-	const [curriculums, setCurriculums] = useState<Curriculum[]>([])
+	const [plans, setPlans] = useState<any[]>([]);
+	const [curriculums, setCurriculums] = useState<Curriculum[]>([]);
 	const [semesterCount, setSemesterCount] = useState(8)
 	const [courseCount, setCourseCount] = useState(4)
 	const { curriculumId } = useParams()
 
 	useEffect(() => {
 		const fetchCurriculums = async () => {
-			const resp = await Requests.getAllCurriculums()
-			setCurriculums(resp)
+			const resp = await Requests.getAllCurriculums();
+			console.log(JSON.stringify(resp));
+			setCurriculums(resp);
 		}
 		fetchCurriculums()
 	}, [])

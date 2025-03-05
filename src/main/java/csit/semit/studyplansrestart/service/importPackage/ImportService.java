@@ -1,46 +1,86 @@
 package csit.semit.studyplansrestart.service.importPackage;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
+import lombok.AllArgsConstructor;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import csit.semit.studyplansrestart.entity.AcademGroup;
 import csit.semit.studyplansrestart.exception.ExcelProcessingException;
 import csit.semit.studyplansrestart.service.GroupService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import csit.semit.studyplansrestart.service.importPackage.ImportUtils;
+
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
+@AllArgsConstructor
 public class ImportService {
     private final ImportUtils importUtils;
     private final Parse parse;
     private final GroupService groupService;
+    private static final Logger log = LoggerFactory.getLogger(ImportService.class);
 
     public int importDirectory(String directoryPath) throws IOException {
         File directory = new File(directoryPath);
-        importUtils.validateDirectory(directory);
+
+        if (directory.isDirectory()) {
+            importUtils.validateDirectory(directory);
+        } else {
+            Path tempDir = Files.createTempDirectory("import_");
+            try (ZipInputStream zis = new ZipInputStream(Files.newInputStream(directory.toPath()))) {
+                ZipEntry zipEntry;
+                while ((zipEntry = zis.getNextEntry()) != null) {
+                    File newFile = newFile(tempDir.toFile(), zipEntry);
+                    if (zipEntry.isDirectory()) {
+                        newFile.mkdirs();
+                    } else {
+                        new File(newFile.getParent()).mkdirs();
+                        try (FileOutputStream fos = new FileOutputStream(newFile)) {
+                            byte[] buffer = new byte[1024];
+                            int len;
+                            while ((len = zis.read(buffer)) > 0) {
+                                fos.write(buffer, 0, len);
+                            }
+                        }
+                    }
+                }
+                zis.closeEntry();
+            }
+            directory = tempDir.toFile();
+        }
 
         int importedFiles = 0;
         File[] files = directory.listFiles();
-        
+
         if (files != null) {
             importedFiles = processFiles(files);
         }
-        
+
         return importedFiles;
+    }
+
+    private File newFile(File destinationDir, ZipEntry zipEntry) throws IOException {
+        File destFile = new File(destinationDir, zipEntry.getName());
+        String destDirPath = destinationDir.getCanonicalPath();
+        String destFilePath = destFile.getCanonicalPath();
+
+        if (!destFilePath.startsWith(destDirPath + File.separator)) {
+            throw new IOException("Entry is outside of the target dir: " + zipEntry.getName());
+        }
+
+        return destFile;
     }
 
     private int processFiles(File[] files) {

@@ -13,26 +13,28 @@ interface CurriculumListProps {
 
 export default function CurriculumList({ curriculums, selectedId }: CurriculumListProps) {
   const navigate = useNavigate()
-
   return (
-    <Paper sx={{ 
-      width: '250px', 
-      height: '100vh',
-      overflowY: 'auto',
-      borderRadius: 0,
-    }}>
-      <List>
-        {curriculums.map((curriculum) => (
-          <ListItem key={curriculum.id} disablePadding>
-            <ListItemButton 
-              selected={selectedId === curriculum.id.toString()}
-              onClick={() => navigate(`/plans/${curriculum.id}`)}
-            >
-              <ListItemText primary={curriculum.name} />
-            </ListItemButton>
-          </ListItem>
-        ))}
-      </List>
-    </Paper>
-  )
+		(
+			<Paper
+				sx={{
+					width: '250px',
+					overflowY: 'scroll',
+					borderRadius: 0,
+				}}
+			>
+				<List>
+					{curriculums.map((curriculum) => (
+						<ListItem key={curriculum.id} disablePadding>
+							<ListItemButton
+								selected={selectedId === curriculum.id.toString()}
+								onClick={() => navigate(`/plans/${curriculum.id}`)}
+							>
+								<ListItemText primary={curriculum.name} />
+							</ListItemButton>
+						</ListItem>
+					))}
+				</List>
+			</Paper>
+		)
+	)
 } 

@@ -1,20 +1,24 @@
 package csit.semit.studyplansrestart.controller;
 
-import java.io.IOException;
-import java.util.Map;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import csit.semit.studyplansrestart.config.FilePathRequest;
+import csit.semit.studyplansrestart.service.exportPlans.ExportService;
+import csit.semit.studyplansrestart.service.importPackage.ImportService;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import csit.semit.studyplansrestart.config.FilePathRequest;
-import csit.semit.studyplansrestart.service.exportPlans.ExportService;
-import csit.semit.studyplansrestart.service.importPackage.ImportService;
-import lombok.RequiredArgsConstructor;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/import")
@@ -84,19 +88,32 @@ public class ImportController {
     }
 
     @PostMapping("/directory")
-    public ResponseEntity<?> readDirectory(@RequestBody FilePathRequest request) {
+    public ResponseEntity<?> readDirectory(@RequestParam("file") MultipartFile file) {
         try {
-            logger.info("Attempting to read directory: {}", request.getFilePath());
-            int processedFiles = importService.importDirectory(request.getFilePath());
+            logger.info("Attempting to read uploaded zip file");
+
+            Path tempDir = Files.createTempDirectory("upload_");
+            File tempFile = new File(tempDir.toFile(), file.getOriginalFilename());
+
+            try (InputStream inputStream = file.getInputStream();
+                 FileOutputStream outputStream = new FileOutputStream(tempFile)) {
+                byte[] buffer = new byte[1024];
+                int len;
+                while ((len = inputStream.read(buffer)) > 0) {
+                    outputStream.write(buffer, 0, len);
+                }
+            }
+            int processedFiles = importService.importDirectory(tempFile.getPath());
+
             return ResponseEntity.ok()
-                .body(Map.of(
-                    "message", "Successfully read directory: " + request.getFilePath(),
-                    "count", processedFiles
-                ));
+                    .body(Map.of(
+                            "message", "Successfully read uploaded zip file",
+                            "count", processedFiles
+                    ));
         } catch (IOException e) {
-            logger.error("Error reading directory: {}", e.getMessage(), e);
+            logger.error("Error reading uploaded zip file: {}", e.getMessage(), e);
             return ResponseEntity.badRequest()
-                .body(Map.of("error", "Failed to read directory: " + e.getMessage()));
+                    .body(Map.of("error", "Failed to read uploaded zip file: " + e.getMessage()));
         }
     }
 

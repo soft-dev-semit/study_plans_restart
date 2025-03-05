@@ -9,6 +9,8 @@ import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import csit.semit.studyplansrestart.config.ExcelUtils; 
@@ -17,8 +19,8 @@ import csit.semit.studyplansrestart.dto.create.CreateCurriculumDTO;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
-@Slf4j
 public class ImportUtils {
+    private static final Logger log = LoggerFactory.getLogger(ImportService.class);
 
     private final Map<String,Boolean> isAllGroups = new HashMap<>();
 
@@ -98,9 +100,9 @@ public class ImportUtils {
                         code = cellCode.getStringCellValue();
                     }
                 }
-                case "Номер освітньої програми" -> 
+                case "Номер освітньої програми","Номер освітньо-професійної програми" ->
                     number = ExcelUtils.getNumberCellValue(row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK));
-                case "Рік (останні 2 цифри)" -> 
+                case "Рік (останні 2 цифри)", "Рік"->
                     year = ExcelUtils.getNumberCellValue(row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK));
             }
         }

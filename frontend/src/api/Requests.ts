@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const domain = `/api/`
+const domain = `http://localhost:8080/api/`
 
 const axiosInstance = axios.create({
 	baseURL: domain,
@@ -38,16 +38,17 @@ axiosInstance.interceptors.response.use(
 	}
 )
 export const Requests = {
-
 	async getPlans(curriculumId: number) {
 		try {
-			const response = await axiosInstance.get(`/curriculum/${curriculumId}/all`)
+			const response = await axiosInstance.get(
+				`/curriculum/${curriculumId}/all`
+			)
 			return response.data
 		} catch (error) {
 			console.error('Error fetching plans:', error)
 			return []
 		}
-	},  
+	},
 
 	async getAllCurriculums() {
 		try {
@@ -63,11 +64,11 @@ export const Requests = {
 		try {
 			const formData = new FormData()
 			formData.append('file', file)
-			
+
 			const response = await axiosInstance.post('/import/single', formData, {
 				headers: {
-					'Content-Type': 'multipart/form-data'
-				}
+					'Content-Type': 'multipart/form-data',
+				},
 			})
 			return response.data
 		} catch (error) {
@@ -75,12 +76,11 @@ export const Requests = {
 			return []
 		}
 	},
-
 	async importMultiFile(files: File[]) {
 		try {
 			const formData = new FormData()
 			files.forEach((file) => {
-				formData.append('file', file)
+				formData.append('file', file) // Добавляем каждый файл отдельно
 			})
 
 			const response = await axiosInstance.post('/import/multiple', formData, {
@@ -95,10 +95,12 @@ export const Requests = {
 		}
 	},
 
-	async importDirectory(filepath: string) {
+	async importDirectory(filepath: FormData) {
 		try {
-			const response = await axiosInstance.post('/import/directory', {
-				filepath,
+			const response = await axiosInstance.post('/import/directory', filepath, {
+				headers: {
+					'Content-Type': 'multipart/form-data',
+				},
 			})
 			return response.data
 		} catch (error) {
@@ -115,5 +117,5 @@ export const Requests = {
 			console.error('Error fetching all courses:', error)
 			return []
 		}
-	}
+	},
 }

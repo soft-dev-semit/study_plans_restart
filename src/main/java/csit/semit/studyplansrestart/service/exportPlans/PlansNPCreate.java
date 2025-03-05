@@ -23,7 +23,13 @@ import lombok.AllArgsConstructor;
 @Service
 @AllArgsConstructor
 public class PlansNPCreate {
+
     DisciplineCurriculumService disciplineCurriculumService;
+
+//    public PlansNPCreate(DisciplineCurriculumService disciplineCurriculumService) {
+//        this.disciplineCurriculumService = disciplineCurriculumService;
+//    }
+
     public static Sheet createHeader(Workbook workbook) {
 
         Sheet sheet = workbook.createSheet("План НП");
