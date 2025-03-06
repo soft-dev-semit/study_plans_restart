@@ -41,14 +41,16 @@ public class Calculet {
         List<AcademGroup> groupList = groupRepository.findAll();
         int maxYear = groupList.stream().max(Comparator.comparing(AcademGroup::getYear)).get().getYear();
         for (AcademGroup academGroup : groupList) {
+            if (academGroup.getName().startsWith("КН-M") || academGroup.getName().startsWith("КН-Н")) {
+                int course = maxYear - academGroup.getYear() + 4;
+                courseMap.put(academGroup.getCurriculum().getId(), course);
+                groupMap.put(academGroup.getCurriculum().getId(), academGroup.getName());
+                continue;
+            }
             if (maxYear == academGroup.getYear()) {
                 courseMap.put(academGroup.getCurriculum().getId(), 1);
                 groupMap.put(academGroup.getCurriculum().getId(), academGroup.getName());
-            }
-            if (academGroup.getName().startsWith("КН-M") || academGroup.getName().startsWith("КН-Н")) {
-                int course = maxYear - academGroup.getYear() + 5;
-                courseMap.put(academGroup.getCurriculum().getId(), course);
-                groupMap.put(academGroup.getCurriculum().getId(), academGroup.getName());
+                continue;
             }
             if (maxYear > academGroup.getYear()) {
                 int course = maxYear - academGroup.getYear() + 1;

@@ -28,29 +28,6 @@ public class ImportController {
     private final ExportService exportService;
     private static final Logger logger = LoggerFactory.getLogger(ImportController.class);
 
-//    @PostMapping("/single")
-//    public ResponseEntity<?> readExcelFile(
-//            @RequestParam(value = "file", required = false) MultipartFile file,
-//            @RequestBody(required = false) FilePathRequest pathRequest) {
-//        try {
-//            if (file != null) {
-//                importService.importSingleFile(file);
-//                return ResponseEntity.ok()
-//                    .body(Map.of("message", "Successfully read file: " + file.getOriginalFilename()));
-//            } else if (pathRequest != null) {
-//                importService.importSingleFile(pathRequest.getFilePath());
-//                return ResponseEntity.ok()
-//                    .body(Map.of("message", "Successfully read file: " + pathRequest.getFilePath()));
-//            } else {
-//                return ResponseEntity.badRequest()
-//                    .body(Map.of("error", "Either file or path must be provided"));
-//            }
-//        } catch (Exception e) {
-//            logger.error("Error reading file: {}", e.getMessage(), e);
-//            return ResponseEntity.badRequest()
-//                .body(Map.of("error", "Failed to read file: " + e.getMessage()));
-//        }
-//    }
     @PostMapping("/single")
     public ResponseEntity<?> readExcelFile(
             @RequestParam(value = "file", required = false) MultipartFile file,

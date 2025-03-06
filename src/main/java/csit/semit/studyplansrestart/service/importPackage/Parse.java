@@ -91,7 +91,6 @@ public class Parse {
 
     public void addGroupFromExcel(Long curriculum_id, Long faculty_id, Long department_id, String fileName) {
         fileName = fileName.replaceAll("\\.xlsx$", "");
-        
         CreateGroupDTO groupDTO = new CreateGroupDTO();
         groupDTO.setCurriculum_id(curriculum_id);
         groupDTO.setFaculty_id(faculty_id);
@@ -108,7 +107,7 @@ public class Parse {
             String yearStr = baseGroupName.substring(baseGroupName.length() - 3, baseGroupName.length() - 1);
             
             try {
-                groupDTO.setYear(Integer.parseInt(yearStr));
+                groupDTO.setYear(curriculumService.getById(curriculum_id).getYear());
                 groupDTO.setLanguage(suffix);
             } catch (NumberFormatException e) {
                 log.error("Failed to parse year from group name: {} (year part: {})", baseGroupName, yearStr);
