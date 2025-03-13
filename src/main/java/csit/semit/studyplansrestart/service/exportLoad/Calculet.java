@@ -70,7 +70,9 @@ public class Calculet {
             Integer course = entry.getValue();
             String groupName = groupMap.get(curriculumId);
             List<HoursDiscSemester> semesters = semesterRepository.findAll();
-
+            if(semesters.isEmpty()) {
+                return null;
+            }
             for (HoursDiscSemester semester : semesters) {
                 if (semester.getDisciplineCurriculum().getCurriculum().getId().equals(curriculumId) && (semester.getSemester() + 1) / 2 == course) {
                     CourseInfo courseInfo = new CourseInfo(

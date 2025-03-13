@@ -77,7 +77,7 @@ public class ImportUtils {
                     }
                 }
             }
-            return cafedralCell - 12;
+            return cafedralCell - 13;
         } catch (Exception e) {
             log.error("Error determining number of semesters: {}", e.getMessage());
             return 8;

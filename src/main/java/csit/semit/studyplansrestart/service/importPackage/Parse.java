@@ -97,7 +97,7 @@ public class Parse {
         groupDTO.setDepartment_id(department_id);
         groupDTO.setName(fileName);
 
-        Pattern pattern = Pattern.compile("([A-ZА-Яа-яІіЇї]{2}-[МНмнMNmn]\\d{3})(.*?)");
+        Pattern pattern = Pattern.compile("([A-ZА-Яа-яІіЇї]{2}-(?:[МНмнMNmn])?\\d{3})(.*?)");
         Matcher matcher = pattern.matcher(fileName);
         
         if (matcher.find()) {

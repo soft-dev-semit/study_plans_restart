@@ -21,7 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 import csit.semit.studyplansrestart.entity.AcademGroup;
 import csit.semit.studyplansrestart.exception.ExcelProcessingException;
 import csit.semit.studyplansrestart.service.GroupService;
-import csit.semit.studyplansrestart.service.importPackage.ImportUtils;
 
 
 @Service
@@ -167,9 +166,15 @@ public class ImportService {
                 return;
             }
 
+
+            if (workbook.getSheet("Освітні програми") != null) {
+                parse.addSpecialitiesFromExel(workbook.getSheet("Освітні програми"));
+            }
+
             Long curriculumId = null;
             for (Sheet sheet : workbook) {
                 curriculumId = processSheet(sheet, curriculumId);
+
             }
 
             if (curriculumId != null) {
