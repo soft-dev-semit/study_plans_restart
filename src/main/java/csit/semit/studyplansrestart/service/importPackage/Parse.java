@@ -23,7 +23,7 @@ import csit.semit.studyplansrestart.dto.create.CreateDisciplineDTO;
 import csit.semit.studyplansrestart.dto.create.CreateFacultyDTO;
 import csit.semit.studyplansrestart.dto.create.CreateGroupDTO;
 import csit.semit.studyplansrestart.dto.create.CreateSpecialtyDTO;
-import csit.semit.studyplansrestart.dto.create.DisciplineCurriculumDTO;
+import csit.semit.studyplansrestart.dto.create.CreateDisciplineCurriculumDTO;
 import csit.semit.studyplansrestart.exception.ExcelProcessingException;
 import csit.semit.studyplansrestart.service.CurriculumService;
 import csit.semit.studyplansrestart.service.DisciplineCurriculumService;
@@ -132,14 +132,14 @@ public class Parse {
             if (nameCell == null || shortNameCell == null || nameCell.trim().isEmpty()) {
                 continue;
             }
+
             switch (nameCell) {
                 case "Загальна кількість за термін підготовки" -> {
                     return;
                 }
-                case "Обов'язкові освітні компоненти", "Загальна підготовка", "Спеціальна (фахова) підготовка", "Вибіркові освітні компоненти", "Профільна підготовка" -> {
-                    continue;
-                    // createExceptionDiscipline(nameCell, shortNameCell, curriculum_id);
-                }
+                case "Обов'язкові освітні компоненти", "Загальна підготовка",
+                        "Спеціальна (фахова) підготовка", "Вибіркові освітні компоненти", "Профільна підготовка" ->
+                        createExceptionDiscipline(nameCell, shortNameCell, curriculum_id);
                 default -> {
                     if (nameCell.contains("Профільований пакет дисциплін")) {
                         createExceptionDiscipline(nameCell, shortNameCell, curriculum_id);
@@ -172,7 +172,7 @@ public class Parse {
 
      private void createExceptionDiscipline(String nameCell, String shortNameCell, long curriculum_id) {
         long discipline_id = disciplineService.create(new CreateDisciplineDTO(nameCell, shortNameCell));
-        disciplineCurriculumService.create(new DisciplineCurriculumDTO(
+        disciplineCurriculumService.create(new CreateDisciplineCurriculumDTO(
                 0, 0, 0, "", "",
                 curriculumService.getById(curriculum_id),
                 disciplineService.findById(discipline_id)));
@@ -180,7 +180,7 @@ public class Parse {
 
     private void createRegularDiscipline(Row row, String nameCell, String shortNameCell, long curriculum_id, int lastColumn) {
         long discipline_id = disciplineService.create(new CreateDisciplineDTO(nameCell, shortNameCell));
-        long discipline_curriculum_id = disciplineCurriculumService.create(new DisciplineCurriculumDTO(
+        long discipline_curriculum_id = disciplineCurriculumService.create(new CreateDisciplineCurriculumDTO(
                 ExcelUtils.getNumberCellValue(row.getCell(9, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)),
                 ExcelUtils.getNumberCellValue(row.getCell(8, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)),
                 ExcelUtils.getNumberCellValue(row.getCell(10, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)),
@@ -190,8 +190,10 @@ public class Parse {
                 disciplineService.findById(discipline_id)));
 
         int semestr = 1;
-        ExamsInfo exams = modelMapper.map(ExcelUtils.getCreditsAndExamsCell(row.getCell(2, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)), ExamsInfo.class);
-        CreditsInfo credits = modelMapper.map(ExcelUtils.getCreditsAndExamsCell(row.getCell(3, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)), CreditsInfo.class);
+        ExamsInfo exams = modelMapper.map(ExcelUtils.getCreditsAndExamsCell(
+                row.getCell(2, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK), row.getRowNum()), ExamsInfo.class);
+        CreditsInfo credits = modelMapper.map(ExcelUtils.getCreditsAndExamsCell(
+                row.getCell(3, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK), row.getRowNum()), CreditsInfo.class);
         
         for (int j = 0; j <= lastColumn; j += 2) {
             semesterService.processSemester(row, discipline_curriculum_id, semestr, credits, exams);

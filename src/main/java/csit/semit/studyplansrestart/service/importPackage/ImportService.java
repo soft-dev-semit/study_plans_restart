@@ -6,11 +6,11 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import lombok.AllArgsConstructor;
-import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.slf4j.Logger;
@@ -66,7 +66,6 @@ public class ImportService {
         if (files != null) {
             importedFiles = processFiles(files);
         }
-
         return importedFiles;
     }
 
@@ -124,7 +123,7 @@ public class ImportService {
 
     public void importSingleFile(MultipartFile file) {
         log.info("Starting import of file: {}", file.getOriginalFilename());
-        importUtils.validateExcelFile(file.getOriginalFilename());
+        importUtils.validateExcelFile(Objects.requireNonNull(file.getOriginalFilename()));
         
         try (InputStream is = file.getInputStream()) {
             readExcelFile(is, file.getOriginalFilename());
@@ -147,7 +146,7 @@ public class ImportService {
         int processedFiles = 0;
         for (MultipartFile file : files) {
             try {
-                importUtils.validateExcelFile(file.getOriginalFilename());
+                importUtils.validateExcelFile(Objects.requireNonNull(file.getOriginalFilename()));
                 importSingleFile(file);
                 processedFiles++;
             } catch (Exception e) {
@@ -160,43 +159,28 @@ public class ImportService {
     private void readExcelFile(InputStream is, String fileName) {
         try (Workbook workbook = WorkbookFactory.create(is)) {
             log.info("Processing file: {}", fileName);
-            
             if (fileName.startsWith("Перелік планів")) {
                 importUtils.processGroupList(workbook);
                 return;
             }
-
 
             if (workbook.getSheet("Освітні програми") != null) {
                 parse.addSpecialitiesFromExel(workbook.getSheet("Освітні програми"));
             }
 
             Long curriculumId = null;
-            for (Sheet sheet : workbook) {
-                curriculumId = processSheet(sheet, curriculumId);
-
+            if (workbook.getSheet("Основні дані") != null) {
+                curriculumId =  parse.addCurriculumFromExcel(workbook.getSheet("Основні дані"));
             }
 
             if (curriculumId != null) {
+                parse.addPlanFromExcel(workbook.getSheet("План НП"), curriculumId);
                 parse.addGroupFromExcel(curriculumId, 1L, 1L, fileName);
             }
         } catch (Exception e) {
             log.error("Error processing file {}: {}", fileName, e.getMessage(), e);
             throw new RuntimeException("Failed to process Excel file", e);
         }
-    }
-
-    private Long processSheet(Sheet sheet, Long curriculumId) {
-        return switch (sheet.getSheetName()) {
-            case "Основні дані" -> parse.addCurriculumFromExcel(sheet);
-            case "План НП" -> {
-                if (curriculumId != null) {
-                    parse.addPlanFromExcel(sheet, curriculumId);
-                }
-                yield curriculumId;
-            }
-            default -> curriculumId;
-        };
     }
 
     public Object checkAllGroups() {

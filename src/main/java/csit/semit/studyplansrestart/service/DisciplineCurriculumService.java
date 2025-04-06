@@ -1,13 +1,15 @@
 package csit.semit.studyplansrestart.service;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import csit.semit.studyplansrestart.dto.returnData.DisciplineCurriculumDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import csit.semit.studyplansrestart.dto.create.DisciplineCurriculumDTO;
-import csit.semit.studyplansrestart.dto.returnData.DisciplineCurriculumWithDiscipline;
+import csit.semit.studyplansrestart.dto.create.CreateDisciplineCurriculumDTO;
+import csit.semit.studyplansrestart.dto.returnData.PlansRow;
 import csit.semit.studyplansrestart.dto.returnData.DisciplineDTO;
 import csit.semit.studyplansrestart.dto.returnData.SemesterDTO;
 import csit.semit.studyplansrestart.entity.DisciplineCurriculum;
@@ -21,37 +23,40 @@ public class DisciplineCurriculumService {
     DisciplineCurriculumRepository disciplineCurriculumRepository;
     CurriculumService curriculumService;
 
-    public Long create(DisciplineCurriculumDTO disciplineCurriculumDTO) {
-        return disciplineCurriculumRepository.save(modelMapper.map(disciplineCurriculumDTO, DisciplineCurriculum.class)).getId();
+    public Long create(CreateDisciplineCurriculumDTO createDisciplineCurriculumDTO) {
+        return disciplineCurriculumRepository.save(modelMapper.map(createDisciplineCurriculumDTO, DisciplineCurriculum.class)).getId();
     }
 
-    public List<DisciplineCurriculumWithDiscipline> getPlansInfo(Long curriculum_id) {
+    public List<PlansRow> getPlansInfo(Long curriculum_id) {
         List<DisciplineCurriculum> disciplineCurricula = disciplineCurriculumRepository
             .findDisciplineCurriculumByCurriculum(curriculumService.getById(curriculum_id));
-
-        List<DisciplineCurriculumWithDiscipline> disciplineCurriculumWithDisciplines = disciplineCurricula.stream()
+        AtomicInteger counter = new AtomicInteger(1);
+        return disciplineCurricula.stream()
                 .map(disciplineCurriculum -> {
                     DisciplineDTO simplifiedDiscipline = modelMapper.map(
-                        disciplineCurriculum.getDiscipline(), 
-                        DisciplineDTO.class
+                            disciplineCurriculum.getDiscipline(),
+                            DisciplineDTO.class
                     );
-                    
-                    List<SemesterDTO> semesters = disciplineCurriculum.getSemesters().stream()
-                        .map(semester -> modelMapper.map(semester, SemesterDTO.class))
-                        .collect(Collectors.toList());
 
-                    return new DisciplineCurriculumWithDiscipline(
-                        disciplineCurriculum.getId(),
-                        disciplineCurriculum.getLabHours(),
-                        disciplineCurriculum.getLecHours(),
-                        disciplineCurriculum.getPracticeHours(),
-                        disciplineCurriculum.getIndividualTaskType(),
-                        disciplineCurriculum.getFileURL(),
-                        simplifiedDiscipline,
-                        semesters
+                    List<SemesterDTO> semesters = disciplineCurriculum.getSemesters().stream()
+                            .map(semester -> modelMapper.map(semester, SemesterDTO.class))
+                            .collect(Collectors.toList());
+
+                    DisciplineCurriculumDTO disciplineCurriculumDTO =  new  DisciplineCurriculumDTO (
+                            disciplineCurriculum.getId(),
+                             disciplineCurriculum.getLabHours(),
+                             disciplineCurriculum.getLecHours(),
+                             disciplineCurriculum.getPracticeHours(),
+                             disciplineCurriculum.getIndividualTaskType()
+                    );
+
+                    return new PlansRow(
+                            counter.getAndIncrement(),
+                            disciplineCurriculumDTO,
+                            simplifiedDiscipline,
+                            semesters
                     );
                 })
                 .collect(Collectors.toList());
-        return disciplineCurriculumWithDisciplines;
     }
 }

@@ -6,6 +6,7 @@ import csit.semit.studyplansrestart.config.FilePathRequest;
 import csit.semit.studyplansrestart.service.exportPlans.ExportService;
 import csit.semit.studyplansrestart.service.importPackage.ImportService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -67,6 +68,7 @@ public class ImportController {
     @PostMapping("/directory")
     public ResponseEntity<?> readDirectory(@RequestParam("file") MultipartFile file) {
         try {
+            long startTime = System.currentTimeMillis();
             logger.info("Attempting to read uploaded zip file");
 
             Path tempDir = Files.createTempDirectory("upload_");
@@ -81,7 +83,8 @@ public class ImportController {
                 }
             }
             int processedFiles = importService.importDirectory(tempFile.getPath());
-
+            long endTime = System.currentTimeMillis();
+            logger.info("Processing all files took {} ms \n Imported files count: {}", (endTime - startTime)/1000, processedFiles);
             return ResponseEntity.ok()
                     .body(Map.of(
                             "message", "Successfully read uploaded zip file",

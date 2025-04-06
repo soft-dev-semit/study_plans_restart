@@ -75,16 +75,13 @@ public class ExcelUtils {
             case STRING -> {
                 return Integer.parseInt(cell.getStringCellValue().trim());
             }
-            case BLANK -> {
-                return 0;
-            }
             default -> {
                 return 0;
             }
         }
     }
 
-    public static GetExamOrCreditsCellDTO getCreditsAndExamsCell(Cell cell) {
+    public static GetExamOrCreditsCellDTO getCreditsAndExamsCell(Cell cell,int rowNumber) {
         int first = 0;
         int second = 0;
         boolean has = false;
@@ -107,14 +104,14 @@ public class ExcelUtils {
                         second = Integer.parseInt(parts[1].trim());
                         has = true;
                     } catch (NumberFormatException e) {
-                        log.warn("Failed to parse credits from string: '{}', parts: {}", cellValue, Arrays.toString(parts));
+                        log.warn("Failed to parse credits from string: '{}', parts: {}, at row: {}", cellValue, Arrays.toString(parts), rowNumber);
                         return new GetExamOrCreditsCellDTO(0, 0, false);
                     }
                 } else {
                     try {
                         first = Integer.parseInt(cellValue);
                     } catch (NumberFormatException e) {
-                        log.warn("Failed to parse credit from string: '{}'", cellValue);
+                        log.warn("Failed to parse credit from string: '{}', at row: {}", cellValue, rowNumber);
                         return new GetExamOrCreditsCellDTO(0, 0, false);
                     }
                 }
@@ -124,7 +121,7 @@ public class ExcelUtils {
 
             return new GetExamOrCreditsCellDTO(first, second, has);
         } catch (Exception e) {
-            log.error("Error processing cell: {}", cell, e);
+            log.error("Error processing cell: {}, at row: {}", cell, rowNumber, e);
             return new GetExamOrCreditsCellDTO(0, 0, false);
         }
     }

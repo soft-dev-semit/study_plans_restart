@@ -9,7 +9,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class DisciplineCurriculumDTO {
+public class CreateDisciplineCurriculumDTO {
     private int labHours;
     private int lecHours;
     private int practiceHours;

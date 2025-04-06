@@ -15,7 +15,7 @@ import org.apache.poi.ss.util.CellRangeAddress;
 import org.springframework.stereotype.Service;
 
 import csit.semit.studyplansrestart.config.ExcelUtils;
-import csit.semit.studyplansrestart.dto.returnData.DisciplineCurriculumWithDiscipline;
+import csit.semit.studyplansrestart.dto.returnData.PlansRow;
 import csit.semit.studyplansrestart.dto.returnData.SemesterDTO;
 import csit.semit.studyplansrestart.service.DisciplineCurriculumService;
 import lombok.AllArgsConstructor;
@@ -217,7 +217,7 @@ public class PlansNPCreate {
     }
 
     public void fillCell(Sheet sheet, long curriculum_id) {
-        List<DisciplineCurriculumWithDiscipline> plansInfo = disciplineCurriculumService.getPlansInfo(curriculum_id);
+        List<PlansRow> plansInfo = disciplineCurriculumService.getPlansInfo(curriculum_id);
         int index = 11;
         int RDrow = 0;
         int secondComponent = 0;
@@ -237,7 +237,7 @@ public class PlansNPCreate {
         long RD3count = plansInfo.stream().dropWhile(d -> d.getDiscipline() == null || !d.getDiscipline().getName().startsWith("Профільований пакет дисциплін 03"))
                 .takeWhile(d -> d.getDiscipline() == null || !d.getDiscipline().getName().equals("Дисципліни вільного вибору студента профільної підготовки згідно переліку")).count();
 
-        for (DisciplineCurriculumWithDiscipline list : plansInfo) {
+        for (PlansRow list : plansInfo) {
             Row row = sheet.createRow(index);
             if("Обов'язкові освітні компоненти".equals(list.getDiscipline().getName())) {
                 row.createCell(0).setCellValue(list.getDiscipline().getShortName());
@@ -338,24 +338,24 @@ public class PlansNPCreate {
                 index++;
                 continue;
             }
-            fillBasicCell(row,index, list);
+//            fillBasicCell(row,index, list);
             index++;
         }
         ExcelUtils.fillLastRow(sheet,index,M22,secondComponent);
     }
 
-    public static void fillBasicCell(Row row ,int index, DisciplineCurriculumWithDiscipline list) {
-        row.createCell(0).setCellValue(list.getDiscipline().getShortName());
-        row.createCell(1).setCellValue(list.getDiscipline().getName());
-        row.createCell(4).setCellValue(list.getIndividualTaskType());
-        ExcelUtils.addFormulaPlansCell(index + 1, row);
-        row.createCell(8).setCellValue(list.getLecHours());
-        row.createCell(9).setCellValue(list.getLabHours());
-        row.createCell(10).setCellValue(list.getPracticeHours());
-        fillSemesterCell(row,list);
-    }
+//    public static void fillBasicCell(Row row ,int index, PlansRow list) {
+//        row.createCell(0).setCellValue(list.getDiscipline().getShortName());
+//        row.createCell(1).setCellValue(list.getDiscipline().getName());
+//        row.createCell(4).setCellValue(list.getIndividualTaskType());
+//        ExcelUtils.addFormulaPlansCell(index + 1, row);
+//        row.createCell(8).setCellValue(list.getLecHours());
+//        row.createCell(9).setCellValue(list.getLabHours());
+//        row.createCell(10).setCellValue(list.getPracticeHours());
+//        fillSemesterCell(row,list);
+//    }
 
-    public static void fillSemesterCell(Row row , DisciplineCurriculumWithDiscipline list) {
+    public static void fillSemesterCell(Row row , PlansRow list) {
         List<Integer> examSemesters = new ArrayList<>();
         List<Integer> creditSemesters = new ArrayList<>();
         for (SemesterDTO semester : list.getSemesters()) {

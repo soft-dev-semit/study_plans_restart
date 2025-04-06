@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import csit.semit.studyplansrestart.dto.returnData.DisciplineCurriculumWithDiscipline;
+import csit.semit.studyplansrestart.dto.returnData.PlansRow;
 import csit.semit.studyplansrestart.service.DisciplineCurriculumService;
 import lombok.AllArgsConstructor;
 
@@ -19,7 +19,7 @@ public class DisciplineCurricumusController {
     DisciplineCurriculumService disciplineCurriculumService;
 
     @GetMapping("/{curriculum_id}/all")
-    public ResponseEntity<List<DisciplineCurriculumWithDiscipline>> getById(@PathVariable Long curriculum_id) {
+    public ResponseEntity<List<PlansRow>> getById(@PathVariable Long curriculum_id) {
         return ResponseEntity.ok(disciplineCurriculumService.getPlansInfo(curriculum_id));
     }
 }
