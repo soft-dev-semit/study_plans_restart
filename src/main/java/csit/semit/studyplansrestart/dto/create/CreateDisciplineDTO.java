@@ -8,6 +8,6 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class CreateDisciplineDTO {
-    public String name;
-    public String shortName;
+  public String name;
+  public String shortName;
 }

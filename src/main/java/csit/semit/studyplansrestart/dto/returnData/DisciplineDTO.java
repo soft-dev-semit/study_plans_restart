@@ -8,7 +8,7 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class DisciplineDTO {
-    public Long id;
-    public String name;
-    public String shortName;
+  public Long id;
+  public String name;
+  public String shortName;
 }

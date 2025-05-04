@@ -10,11 +10,11 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class CreateDisciplineCurriculumDTO {
-    private int labHours;
-    private int lecHours;
-    private int practiceHours;
-    private String individualTaskType;
-    private String fileURL;
-    private Curriculum curriculum;
-    private Discipline discipline;
+  private int labHours;
+  private int lecHours;
+  private int practiceHours;
+  private String individualTaskType;
+  private String fileURL;
+  private Curriculum curriculum;
+  private Discipline discipline;
 }

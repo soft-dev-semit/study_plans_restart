@@ -8,6 +8,6 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class CreateFacultyDTO {
-    public String code;
-    public String name;
+  public String code;
+  public String name;
 }

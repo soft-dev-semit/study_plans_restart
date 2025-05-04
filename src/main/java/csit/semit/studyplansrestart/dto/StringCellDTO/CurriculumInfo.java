@@ -10,7 +10,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CurriculumInfo {
-    public String code;
-    public int number;
-    public int year;
+  public String code;
+  public int number;
+  public int year;
 }

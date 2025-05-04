@@ -8,10 +8,10 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class CurriculumDTO {
-    public long id;
-    public String file_url;
-    public String approvementURL;
-    public int year;
-    public long specialty_id;
-    public long department_id;
+  public long id;
+  public String file_url;
+  public String approvementURL;
+  public int year;
+  public long specialty_id;
+  public long department_id;
 }

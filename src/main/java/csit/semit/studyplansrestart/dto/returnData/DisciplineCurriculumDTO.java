@@ -8,9 +8,9 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class DisciplineCurriculumDTO {
-    private Long id;
-    private int labHours;
-    private int lecHours;
-    private int practiceHours;
-    private String individualTaskType;
+  private Long id;
+  private int labHours;
+  private int lecHours;
+  private int practiceHours;
+  private String individualTaskType;
 }
