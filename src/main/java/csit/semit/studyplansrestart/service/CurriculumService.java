@@ -1,11 +1,13 @@
 package csit.semit.studyplansrestart.service;
 
 import csit.semit.studyplansrestart.dto.create.CreateCurriculumDTO;
+import csit.semit.studyplansrestart.dto.returnData.GroupAndCurriculumId;
 import csit.semit.studyplansrestart.entity.Curriculum;
 import csit.semit.studyplansrestart.repository.CurriculumRepository;
 import csit.semit.studyplansrestart.repository.DepartmentRepository;
 import csit.semit.studyplansrestart.repository.SpecialtyRepository;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -62,7 +64,17 @@ public class CurriculumService {
     return curriculumRepository.save(curriculum);
   }
 
-  // public List<Object[]> getCurriculumIdAndGroupName() {
-  //     return curriculumRepository.getCurriculumIdAndGroupName();
-  // }
+  public List<GroupAndCurriculumId> getAllLoadTemplate() {
+    return curriculumRepository.findAll().stream()
+        .map(
+            curriculum ->
+                new GroupAndCurriculumId(
+                    curriculum.getId(),
+                    (curriculum.getDepartment().getName()
+                        + "-"
+                        + curriculum.getSpecialty().getNumber()
+                        + curriculum.getYear()
+                        + curriculum.getStudyForm())))
+        .collect(Collectors.toList());
+  }
 }

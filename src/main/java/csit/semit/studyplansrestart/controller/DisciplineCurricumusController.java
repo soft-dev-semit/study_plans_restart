@@ -23,7 +23,7 @@ public class DisciplineCurricumusController {
   @PatchMapping("/update")
   public ResponseEntity<Boolean> updateDisciplineCurriculum(
       @RequestBody List<DisciplineCurriculumDTO> disciplineCurriculumDTO) {
-    if (disciplineCurriculumDTO != null) {
+    if (!disciplineCurriculumDTO.isEmpty()) {
       disciplineCurriculumService.update(disciplineCurriculumDTO);
       return ResponseEntity.ok(true);
     }

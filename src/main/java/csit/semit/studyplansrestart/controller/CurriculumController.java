@@ -1,7 +1,7 @@
 package csit.semit.studyplansrestart.controller;
 
 import csit.semit.studyplansrestart.dto.returnData.GroupAndCurriculumId;
-import csit.semit.studyplansrestart.service.GroupService;
+import csit.semit.studyplansrestart.service.CurriculumService;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -13,11 +13,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/api/curriculum")
 @AllArgsConstructor
 public class CurriculumController {
-  // CurriculumService curriculumService;
-  GroupService groupService;
+  CurriculumService curriculumService;
 
   @GetMapping("/")
   public ResponseEntity<List<GroupAndCurriculumId>> getAllCurriculums() {
-    return ResponseEntity.ok(groupService.findAllGroupAndCurriculumId());
+    return ResponseEntity.ok(curriculumService.getAllLoadTemplate());
   }
 }

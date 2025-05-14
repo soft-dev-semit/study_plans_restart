@@ -13,4 +13,5 @@ public class CurriculumInfo {
   public String code;
   public int number;
   public int year;
+  public String studyForm;
 }

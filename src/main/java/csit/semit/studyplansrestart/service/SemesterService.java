@@ -12,8 +12,8 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import org.apache.poi.ss.usermodel.Row;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @AllArgsConstructor
@@ -22,9 +22,16 @@ public class SemesterService {
   DisciplineCurriculumRepository disciplineCurriculumRepository;
   ModelMapper modelMapper;
 
-  public Long create(CreateSemesterDTO semesterDTO) {
+  public void create(List<CreateSemesterDTO> semesterDTO) {
+    for (CreateSemesterDTO dto : semesterDTO) {
+      HoursDiscSemester semester = modelMapper.map(dto, HoursDiscSemester.class);
+      semesterRepository.save(semester);
+    }
+  }
+
+  public void create(CreateSemesterDTO semesterDTO) {
     HoursDiscSemester semester = modelMapper.map(semesterDTO, HoursDiscSemester.class);
-    return semesterRepository.save(semester).getId();
+    semesterRepository.save(semester);
   }
 
   public void processSemester(
@@ -75,16 +82,17 @@ public class SemesterService {
     semesterRepository.deleteById(semester.getId());
   }
 
+  @Transactional
   public void updateSemester(List<SemesterDTO> semesterList) {
     if (!semesterList.isEmpty()) {
       for (SemesterDTO semesterDTO : semesterList) {
-        HoursDiscSemester mapDiscipline = modelMapper.map(semesterDTO, HoursDiscSemester.class);
         HoursDiscSemester oldDiscipline =
             semesterRepository
-                .findById(mapDiscipline.getId())
+                .findById(semesterDTO.getId())
                 .orElseThrow(() -> new RuntimeException("Wrong id"));
-        BeanUtils.copyProperties(mapDiscipline, oldDiscipline);
-        semesterRepository.save(mapDiscipline);
+        modelMapper.map(semesterDTO, oldDiscipline);
+        semesterRepository.save(oldDiscipline);
+        //        semesterRepository.
       }
     }
   }

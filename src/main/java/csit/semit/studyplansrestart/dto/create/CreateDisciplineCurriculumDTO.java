@@ -1,7 +1,9 @@
 package csit.semit.studyplansrestart.dto.create;
 
+import csit.semit.studyplansrestart.entity.AcademGroup;
 import csit.semit.studyplansrestart.entity.Curriculum;
 import csit.semit.studyplansrestart.entity.Discipline;
+import csit.semit.studyplansrestart.entity.SpecializedDisciplinesPackage;
 import lombok.*;
 
 @Getter
@@ -17,4 +19,6 @@ public class CreateDisciplineCurriculumDTO {
   private String fileURL;
   private Curriculum curriculum;
   private Discipline discipline;
+  private AcademGroup academGroup;
+  private SpecializedDisciplinesPackage specializedDisciplinesPackage;
 }

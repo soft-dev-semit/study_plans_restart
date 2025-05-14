@@ -31,6 +31,14 @@ public class DisciplineCurriculum {
   @JoinColumn(name = "curriculum_id")
   private Curriculum curriculum;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "academ_group_id")
+  private AcademGroup academGroup;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "specialized_discipline_package_id")
+  private SpecializedDisciplinesPackage specializedDisciplinesPackage;
+
   @ToString.Exclude
   @OneToMany(mappedBy = "disciplineCurriculum", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   List<HoursDiscSemester> semesters = new LinkedList<>();

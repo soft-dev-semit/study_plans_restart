@@ -4,19 +4,11 @@ import csit.semit.studyplansrestart.config.ExcelUtils;
 import csit.semit.studyplansrestart.dto.StringCellDTO.CreditsInfo;
 import csit.semit.studyplansrestart.dto.StringCellDTO.CurriculumInfo;
 import csit.semit.studyplansrestart.dto.StringCellDTO.ExamsInfo;
-import csit.semit.studyplansrestart.dto.create.CreateDisciplineCurriculumDTO;
-import csit.semit.studyplansrestart.dto.create.CreateDisciplineDTO;
-import csit.semit.studyplansrestart.dto.create.CreateFacultyDTO;
-import csit.semit.studyplansrestart.dto.create.CreateGroupDTO;
-import csit.semit.studyplansrestart.dto.create.CreateSpecialtyDTO;
+import csit.semit.studyplansrestart.dto.create.*;
+import csit.semit.studyplansrestart.entity.Discipline;
+import csit.semit.studyplansrestart.entity.SpecializedDisciplinesPackage;
 import csit.semit.studyplansrestart.exception.ExcelProcessingException;
-import csit.semit.studyplansrestart.service.CurriculumService;
-import csit.semit.studyplansrestart.service.DisciplineCurriculumService;
-import csit.semit.studyplansrestart.service.DisciplineService;
-import csit.semit.studyplansrestart.service.FacultyService;
-import csit.semit.studyplansrestart.service.GroupService;
-import csit.semit.studyplansrestart.service.SemesterService;
-import csit.semit.studyplansrestart.service.SpecialtyService;
+import csit.semit.studyplansrestart.service.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -46,6 +38,7 @@ public class Parse {
   private final DisciplineCurriculumService disciplineCurriculumService;
   private final SemesterService semesterService;
   private final ModelMapper modelMapper;
+  private final SpecializedDisciplinesPackageService packageService;
 
   public Long addCurriculumFromExcel(Sheet plansSheet) {
     try {
@@ -126,6 +119,7 @@ public class Parse {
 
   public void addPlanFromExcel(Sheet planSheet, long curriculum_id) {
     int lastColumn = importUtils.determineNumberOfSemesters(planSheet.getRow(10));
+    Map<String, String> stringStringHashMap = new HashMap<>();
     for (int i = 11; i <= planSheet.getLastRowNum(); i++) {
       Row row = planSheet.getRow(i);
       if (row == null) continue;
@@ -150,7 +144,15 @@ public class Parse {
             nameCell, shortNameCell, curriculum_id);
         default -> {
           if (nameCell.contains("Профільований пакет дисциплін")) {
+            stringStringHashMap.clear();
             createExceptionDiscipline(nameCell, shortNameCell, curriculum_id);
+            stringStringHashMap = parseString(nameCell);
+          } else if (!stringStringHashMap.isEmpty()
+              && !nameCell.startsWith("Дисципліни вільного")) {
+            specializedDisciplineCurriculum(
+                row, nameCell, shortNameCell, curriculum_id, lastColumn, stringStringHashMap);
+          } else if (nameCell.startsWith("Дисципліни вільного")) {
+            stringStringHashMap.clear();
           } else {
             createRegularDiscipline(row, nameCell, shortNameCell, curriculum_id, lastColumn);
           }
@@ -187,21 +189,17 @@ public class Parse {
 
   private void createExceptionDiscipline(
       String nameCell, String shortNameCell, long curriculum_id) {
-    long discipline_id = disciplineService.create(new CreateDisciplineDTO(nameCell, shortNameCell));
+    Discipline discipline =
+        disciplineService.create(new CreateDisciplineDTO(nameCell, shortNameCell));
     disciplineCurriculumService.create(
         new CreateDisciplineCurriculumDTO(
-            0,
-            0,
-            0,
-            "",
-            "",
-            curriculumService.getById(curriculum_id),
-            disciplineService.findById(discipline_id)));
+            0, 0, 0, "", "", curriculumService.getById(curriculum_id), discipline, null, null));
   }
 
   private void createRegularDiscipline(
       Row row, String nameCell, String shortNameCell, long curriculum_id, int lastColumn) {
-    long discipline_id = disciplineService.create(new CreateDisciplineDTO(nameCell, shortNameCell));
+    Discipline discipline =
+        disciplineService.create(new CreateDisciplineDTO(nameCell, shortNameCell));
     long discipline_curriculum_id =
         disciplineCurriculumService.create(
             new CreateDisciplineCurriculumDTO(
@@ -215,8 +213,49 @@ public class Parse {
                     row.getCell(4, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)),
                 nameCell,
                 curriculumService.getById(curriculum_id),
-                disciplineService.findById(discipline_id)));
+                discipline,
+                null,
+                null));
 
+    fillSemester(row, lastColumn, discipline_curriculum_id);
+  }
+
+  private void specializedDisciplineCurriculum(
+      Row row,
+      String nameCell,
+      String shortNameCell,
+      long curriculum_id,
+      int lastColumn,
+      Map<String, String> stringStringHashMap) {
+    Map.Entry<String, String> entry = stringStringHashMap.entrySet().iterator().next();
+    String indexOfDiscipline = entry.getKey();
+    String nameOfPackage = entry.getValue();
+    SpecializedDisciplinesPackage packageDiscipline =
+        packageService.create(
+            new SpecializedDisciplinesPackageDTO(nameOfPackage, indexOfDiscipline));
+    Discipline discipline =
+        disciplineService.create(new CreateDisciplineDTO(nameCell, shortNameCell));
+    long discipline_curriculum_id =
+        disciplineCurriculumService.create(
+            new CreateDisciplineCurriculumDTO(
+                ExcelUtils.getNumberCellValue(
+                    row.getCell(9, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)),
+                ExcelUtils.getNumberCellValue(
+                    row.getCell(8, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)),
+                ExcelUtils.getNumberCellValue(
+                    row.getCell(10, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)),
+                ExcelUtils.getStringCellValue(
+                    row.getCell(4, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)),
+                nameCell,
+                curriculumService.getById(curriculum_id),
+                discipline,
+                null,
+                packageDiscipline));
+
+    fillSemester(row, lastColumn, discipline_curriculum_id);
+  }
+
+  private void fillSemester(Row row, int lastColumn, long discipline_curriculum_id) {
     int semestr = 1;
     ExamsInfo exams =
         modelMapper.map(
@@ -233,5 +272,21 @@ public class Parse {
       semesterService.processSemester(row, discipline_curriculum_id, semestr, credits, exams);
       ++semestr;
     }
+  }
+
+  private Map<String, String> parseString(String input) {
+    Map<String, String> result = new HashMap<>();
+
+    Pattern codePattern = Pattern.compile("\\s+(\\d+)\\s+");
+    Matcher codeMatcher = codePattern.matcher(input);
+
+    Pattern namePattern = Pattern.compile("[\"«]([^\"»]*)[»\"]");
+    Matcher nameMatcher = namePattern.matcher(input);
+
+    if (nameMatcher.find() && codeMatcher.find()) {
+      result.put(codeMatcher.group(1), nameMatcher.group(1));
+    }
+
+    return result;
   }
 }

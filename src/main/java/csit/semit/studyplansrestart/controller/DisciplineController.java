@@ -34,7 +34,7 @@ public class DisciplineController {
 
   @PostMapping("create")
   public ResponseEntity<Long> create(@RequestBody CreateDisciplineDTO disciplineDTO) {
-    return ResponseEntity.ok(disciplineService.create(disciplineDTO));
+    return ResponseEntity.ok(disciplineService.create(disciplineDTO).getId());
   }
 
   @PatchMapping("/update")

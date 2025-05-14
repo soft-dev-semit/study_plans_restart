@@ -1,6 +1,7 @@
 package csit.semit.studyplansrestart.entity;
 
 import jakarta.persistence.*;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,8 +19,6 @@ public class AcademGroup {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  //	@Column(length = 10, nullable = false)
-  //	private String code;
   @Column(nullable = false)
   private String name;
 
@@ -39,4 +38,7 @@ public class AcademGroup {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "faculty_id")
   private Faculty faculty;
+
+  @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "academGroup")
+  private List<DisciplineCurriculum> disciplineCurriculums;
 }

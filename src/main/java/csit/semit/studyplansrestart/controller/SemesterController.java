@@ -16,8 +16,9 @@ public class SemesterController {
   SemesterService semesterService;
 
   @PostMapping("create")
-  public ResponseEntity<Long> create(@RequestBody CreateSemesterDTO semesterDto) {
-    return ResponseEntity.ok(semesterService.create(semesterDto));
+  public ResponseEntity<?> create(@RequestBody List<CreateSemesterDTO> semesterDto) {
+    semesterService.create(semesterDto);
+    return ResponseEntity.ok(true);
   }
 
   @PatchMapping("/update")

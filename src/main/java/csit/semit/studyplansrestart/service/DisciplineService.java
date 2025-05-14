@@ -10,8 +10,8 @@ import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @AllArgsConstructor
@@ -26,13 +26,11 @@ public class DisciplineService {
         .orElseThrow(() -> new RuntimeException("Discipline not found with id: " + discipline_id));
   }
 
-  public Long create(CreateDisciplineDTO disciplineDTO) {
+  public Discipline create(CreateDisciplineDTO disciplineDTO) {
     Optional<Discipline> discipline =
         disciplineRepository.findByNameAndShortName(disciplineDTO.name, disciplineDTO.shortName);
-    return discipline
-        .orElseGet(
-            () -> disciplineRepository.save(modelMapper.map(disciplineDTO, Discipline.class)))
-        .getId();
+    return discipline.orElseGet(
+        () -> disciplineRepository.save(modelMapper.map(disciplineDTO, Discipline.class)));
   }
 
   public void deleteDiscipline(Long discipline_id) {
@@ -44,16 +42,23 @@ public class DisciplineService {
     disciplineRepository.deleteById(discipline.getId());
   }
 
+  @Transactional
   public void updateDiscipline(List<DisciplineDTO> disciplineList) {
     if (!disciplineList.isEmpty()) {
       for (DisciplineDTO disciplineDTO : disciplineList) {
-        Discipline mapDiscipline = modelMapper.map(disciplineDTO, Discipline.class);
         Discipline oldDiscipline =
             disciplineRepository
-                .findById(mapDiscipline.getId())
+                .findById(disciplineDTO.getId())
                 .orElseThrow(() -> new RuntimeException("Wrong id"));
-        BeanUtils.copyProperties(mapDiscipline, oldDiscipline);
-        disciplineRepository.save(mapDiscipline);
+
+        if (disciplineDTO.getName().isEmpty()) {
+          oldDiscipline.setName(disciplineDTO.getName());
+        }
+        if (disciplineDTO.getShortName().isEmpty()) {
+          oldDiscipline.setShortName(disciplineDTO.getShortName());
+        }
+
+        disciplineRepository.save(oldDiscipline);
       }
     }
   }

@@ -11,6 +11,7 @@ public class CreateCurriculumDTO {
   public String file_url;
   public String approvementURL;
   public int year;
+  public String studyForm;
   public long specialty_id;
   public long department_id;
 }

@@ -6,6 +6,7 @@ import csit.semit.studyplansrestart.dto.create.CreateCurriculumDTO;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
@@ -26,6 +27,7 @@ public class ImportUtils {
         .file_url("file.url")
         .approvementURL("approve_URL")
         .year(info.getYear())
+        .studyForm(info.getStudyForm())
         .specialty_id(specialityId)
         .department_id(1L)
         .build();
@@ -84,6 +86,7 @@ public class ImportUtils {
     String code = "";
     int number = 0;
     int year = 0;
+    String studyForm = "";
 
     for (Row row : sheet) {
       if (row == null) continue;
@@ -104,9 +107,15 @@ public class ImportUtils {
             ExcelUtils.getNumberCellValue(
                 row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK));
       }
+      if (Pattern.matches("Форма навчання( та інше)?", findCell.trim())) {
+        Cell cellCode = row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+        if (cellCode != null && cellCode.getCellType() == CellType.STRING) {
+          studyForm = cellCode.getStringCellValue().replaceFirst("^\\.", "");
+        }
+      }
     }
 
-    return new CurriculumInfo(code, number, year);
+    return new CurriculumInfo(code, number, year, studyForm);
   }
 
   public void processGroupList(Workbook workbook) {

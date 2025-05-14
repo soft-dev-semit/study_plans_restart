@@ -30,10 +30,10 @@ public class Curriculum {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  //	private String name;
   private int year;
   private String file_url;
   private String approvementURL;
+  private String studyForm;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "specialty_id")

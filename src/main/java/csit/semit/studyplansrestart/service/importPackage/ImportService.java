@@ -131,14 +131,6 @@ public class ImportService {
     }
   }
 
-  public void importSingleFile(String filePath) {
-    try (FileInputStream fis = new FileInputStream(filePath)) {
-      readExcelFile(fis, filePath);
-    } catch (IOException e) {
-      throw new ExcelProcessingException("Failed to import file: " + filePath, e);
-    }
-  }
-
   public int importMultipleFiles(MultipartFile[] files) {
     int processedFiles = 0;
     for (MultipartFile file : files) {
@@ -172,7 +164,7 @@ public class ImportService {
 
       if (curriculumId != null) {
         parse.addPlanFromExcel(workbook.getSheet("План НП"), curriculumId);
-        parse.addGroupFromExcel(curriculumId, 1L, 1L, fileName);
+        //        parse.addGroupFromExcel(curriculumId, 1L, 1L, fileName);
       }
     } catch (Exception e) {
       log.error("Error processing file {}: {}", fileName, e.getMessage(), e);
