@@ -1,6 +1,7 @@
 package csit.semit.studyplansrestart.entity;
 
 import jakarta.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.*;
 
@@ -23,5 +24,5 @@ public class SpecializedDisciplinesPackage {
       fetch = FetchType.LAZY,
       cascade = CascadeType.ALL,
       mappedBy = "specializedDisciplinesPackage")
-  List<DisciplineCurriculum> disciplineCurricula;
+  List<DisciplineCurriculum> disciplineCurricula = new ArrayList<>();
 }

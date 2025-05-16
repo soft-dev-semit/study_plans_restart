@@ -3,6 +3,7 @@ package csit.semit.studyplansrestart.service;
 import csit.semit.studyplansrestart.dto.create.CreateGroupDTO;
 import csit.semit.studyplansrestart.dto.returnData.GroupAndCurriculumId;
 import csit.semit.studyplansrestart.entity.AcademGroup;
+import csit.semit.studyplansrestart.entity.Curriculum;
 import csit.semit.studyplansrestart.repository.DepartmentRepository;
 import csit.semit.studyplansrestart.repository.FacultyRepository;
 import csit.semit.studyplansrestart.repository.GroupRepository;
@@ -19,17 +20,17 @@ public class GroupService {
   FacultyRepository facultyService;
   DepartmentRepository departmentService;
 
-  public Long create(CreateGroupDTO groupDTO) {
+  public AcademGroup create(CreateGroupDTO groupDTO) {
+    Curriculum curriculum = curriculumService.getById(groupDTO.curriculum_id);
     AcademGroup group = new AcademGroup();
-    group.setCurriculum(curriculumService.getById(groupDTO.getCurriculum_id()));
-    group.setFaculty(facultyService.getReferenceById(groupDTO.getFaculty_id()));
-    group.setDepartment(departmentService.getReferenceById(groupDTO.getDepartment_id()));
-    group.setCurriculum(curriculumService.getById(groupDTO.getCurriculum_id()));
+    group.setCurriculum(curriculum);
+    group.setFaculty(curriculum.getDepartment().getFaculty());
+    group.setDepartment(curriculum.getDepartment());
     group.setName(groupDTO.getName());
     group.setYear(groupDTO.getYear());
     group.setLanguage(groupDTO.getLanguage());
 
-    return groupRepository.save(group).getId();
+    return groupRepository.save(group);
   }
 
   public List<AcademGroup> findAll() {

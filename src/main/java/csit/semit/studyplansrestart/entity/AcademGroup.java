@@ -27,6 +27,8 @@ public class AcademGroup {
   @Column(nullable = false, length = 15)
   private String language;
 
+  @Column private int studentAmount;
+
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "department_id")
   private Department department;

@@ -1,6 +1,6 @@
 package csit.semit.studyplansrestart.service.importPackage;
 
-import csit.semit.studyplansrestart.config.ExcelUtils;
+import csit.semit.studyplansrestart.config.Utils;
 import csit.semit.studyplansrestart.dto.StringCellDTO.CurriculumInfo;
 import csit.semit.studyplansrestart.dto.create.CreateCurriculumDTO;
 import java.io.File;
@@ -68,7 +68,7 @@ public class ImportUtils {
       for (int i = 18; i < row.getLastCellNum(); i++) {
         Cell cell = row.getCell(i, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
         if (cell != null) {
-          String cellValue = ExcelUtils.getStringCellValue(cell);
+          String cellValue = Utils.getStringCellValue(cell);
           if ("29".equals(cellValue)) {
             cafedralCell = i;
             break;
@@ -92,7 +92,7 @@ public class ImportUtils {
       if (row == null) continue;
 
       String findCell =
-          ExcelUtils.getStringCellValue(row.getCell(0, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK));
+          Utils.getStringCellValue(row.getCell(0, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK));
       switch (findCell) {
         case "Шифр спеціальністі", "Шифр спеціальності" -> {
           Cell cellCode = row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
@@ -101,11 +101,9 @@ public class ImportUtils {
           }
         }
         case "Номер освітньої програми", "Номер освітньо-професійної програми" -> number =
-            ExcelUtils.getNumberCellValue(
-                row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK));
+            Utils.getNumberCellValue(row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK));
         case "Рік (останні 2 цифри)", "Рік" -> year =
-            ExcelUtils.getNumberCellValue(
-                row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK));
+            Utils.getNumberCellValue(row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK));
       }
       if (Pattern.matches("Форма навчання( та інше)?", findCell.trim())) {
         Cell cellCode = row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
@@ -124,7 +122,7 @@ public class ImportUtils {
       Row row = sheet.getRow(i);
       if (row == null) continue;
       String groupName =
-          ExcelUtils.getStringCellValue(row.getCell(0, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK));
+          Utils.getStringCellValue(row.getCell(0, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK));
       isAllGroups.put(groupName, false);
     }
   }

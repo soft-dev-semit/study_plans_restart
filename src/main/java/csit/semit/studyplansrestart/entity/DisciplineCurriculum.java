@@ -10,6 +10,7 @@ import lombok.*;
 @Getter
 @Setter
 @Entity
+@Builder
 @Table(name = "discipline_curriculums")
 public class DisciplineCurriculum {
 

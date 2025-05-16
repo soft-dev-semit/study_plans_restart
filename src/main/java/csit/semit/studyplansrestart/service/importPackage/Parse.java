@@ -1,6 +1,6 @@
 package csit.semit.studyplansrestart.service.importPackage;
 
-import csit.semit.studyplansrestart.config.ExcelUtils;
+import csit.semit.studyplansrestart.config.Utils;
 import csit.semit.studyplansrestart.dto.StringCellDTO.CreditsInfo;
 import csit.semit.studyplansrestart.dto.StringCellDTO.CurriculumInfo;
 import csit.semit.studyplansrestart.dto.StringCellDTO.ExamsInfo;
@@ -87,8 +87,6 @@ public class Parse {
     fileName = fileName.replaceAll("\\.xlsx$", "");
     CreateGroupDTO groupDTO = new CreateGroupDTO();
     groupDTO.setCurriculum_id(curriculum_id);
-    groupDTO.setFaculty_id(faculty_id);
-    groupDTO.setDepartment_id(department_id);
     groupDTO.setName(fileName);
 
     Pattern pattern = Pattern.compile("([A-ZА-Яа-яІіЇї]{2}-(?:[МНмнMNmn])?\\d{3})(.*?)");
@@ -124,9 +122,9 @@ public class Parse {
       Row row = planSheet.getRow(i);
       if (row == null) continue;
       String shortNameCell =
-          ExcelUtils.getStringCellValue(row.getCell(0, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK));
+          Utils.getStringCellValue(row.getCell(0, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK));
       String nameCell =
-          ExcelUtils.getStringCellValue(row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK));
+          Utils.getStringCellValue(row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK));
 
       if (nameCell == null || shortNameCell == null || nameCell.trim().isEmpty()) {
         continue;
@@ -203,13 +201,13 @@ public class Parse {
     long discipline_curriculum_id =
         disciplineCurriculumService.create(
             new CreateDisciplineCurriculumDTO(
-                ExcelUtils.getNumberCellValue(
+                Utils.getNumberCellValue(
                     row.getCell(9, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)),
-                ExcelUtils.getNumberCellValue(
+                Utils.getNumberCellValue(
                     row.getCell(8, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)),
-                ExcelUtils.getNumberCellValue(
+                Utils.getNumberCellValue(
                     row.getCell(10, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)),
-                ExcelUtils.getStringCellValue(
+                Utils.getStringCellValue(
                     row.getCell(4, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)),
                 nameCell,
                 curriculumService.getById(curriculum_id),
@@ -238,20 +236,19 @@ public class Parse {
     long discipline_curriculum_id =
         disciplineCurriculumService.create(
             new CreateDisciplineCurriculumDTO(
-                ExcelUtils.getNumberCellValue(
+                Utils.getNumberCellValue(
                     row.getCell(9, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)),
-                ExcelUtils.getNumberCellValue(
+                Utils.getNumberCellValue(
                     row.getCell(8, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)),
-                ExcelUtils.getNumberCellValue(
+                Utils.getNumberCellValue(
                     row.getCell(10, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)),
-                ExcelUtils.getStringCellValue(
+                Utils.getStringCellValue(
                     row.getCell(4, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)),
                 nameCell,
                 curriculumService.getById(curriculum_id),
                 discipline,
                 null,
                 packageDiscipline));
-
     fillSemester(row, lastColumn, discipline_curriculum_id);
   }
 
@@ -259,12 +256,12 @@ public class Parse {
     int semestr = 1;
     ExamsInfo exams =
         modelMapper.map(
-            ExcelUtils.getCreditsAndExamsCell(
+            Utils.getCreditsAndExamsCell(
                 row.getCell(2, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK), row.getRowNum()),
             ExamsInfo.class);
     CreditsInfo credits =
         modelMapper.map(
-            ExcelUtils.getCreditsAndExamsCell(
+            Utils.getCreditsAndExamsCell(
                 row.getCell(3, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK), row.getRowNum()),
             CreditsInfo.class);
 

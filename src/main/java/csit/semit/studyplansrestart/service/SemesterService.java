@@ -1,6 +1,6 @@
 package csit.semit.studyplansrestart.service;
 
-import csit.semit.studyplansrestart.config.ExcelUtils;
+import csit.semit.studyplansrestart.config.Utils;
 import csit.semit.studyplansrestart.dto.StringCellDTO.CreditsInfo;
 import csit.semit.studyplansrestart.dto.StringCellDTO.ExamsInfo;
 import csit.semit.studyplansrestart.dto.create.CreateSemesterDTO;
@@ -38,10 +38,10 @@ public class SemesterService {
       Row row, Long discipline_curriculum_id, int semestr, CreditsInfo credits, ExamsInfo exams) {
     CreateSemesterDTO newSemester = new CreateSemesterDTO();
     int auditHours =
-        ExcelUtils.getNumberCellValue(
+        Utils.getNumberCellValue(
             row.getCell(12 + (semestr - 1) * 2, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK));
     int creditsECTS =
-        ExcelUtils.getNumberCellValue(
+        Utils.getNumberCellValue(
             row.getCell(12 + (semestr - 1) * 2 + 1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK));
     if (auditHours != 0 || creditsECTS != 0) {
       newSemester.setCreditsECTS(creditsECTS);

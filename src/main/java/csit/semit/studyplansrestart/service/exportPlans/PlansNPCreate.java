@@ -1,6 +1,6 @@
 package csit.semit.studyplansrestart.service.exportPlans;
 
-import csit.semit.studyplansrestart.config.ExcelUtils;
+import csit.semit.studyplansrestart.config.Utils;
 import csit.semit.studyplansrestart.dto.returnData.PlansRow;
 import csit.semit.studyplansrestart.dto.returnData.SemesterDTO;
 import csit.semit.studyplansrestart.service.DisciplineCurriculumService;
@@ -315,7 +315,7 @@ public class PlansNPCreate {
       if ("Обов'язкові освітні компоненти".equals(list.getDiscipline().getName())) {
         row.createCell(0).setCellValue(list.getDiscipline().getShortName());
         row.createCell(1).setCellValue(list.getDiscipline().getName());
-        ExcelUtils.fillHeadings(row, index + 2, index + (int) count + 2);
+        Utils.fillHeadings(row, index + 2, index + (int) count + 2);
         index++;
         continue;
       }
@@ -330,14 +330,14 @@ public class PlansNPCreate {
           targetIndex += (int) SPcount;
           M22 = index;
         }
-        ExcelUtils.fillSubheading(row, index + 2, targetIndex);
+        Utils.fillSubheading(row, index + 2, targetIndex);
         index++;
         continue;
       }
       if ("Вибіркові освітні компоненти".equals(list.getDiscipline().getName())) {
         row.createCell(0).setCellValue(list.getDiscipline().getShortName());
         row.createCell(1).setCellValue(list.getDiscipline().getName());
-        ExcelUtils.fillSecondHeadings(
+        Utils.fillSecondHeadings(
             row, index + 2, (int) (index + number + 2), (int) (index + number + 3));
         secondComponent = index + 1;
         index++;
@@ -369,7 +369,7 @@ public class PlansNPCreate {
       if (list.getDiscipline().getName().startsWith("Профільований пакет дисциплін 01")) {
         row.createCell(0).setCellValue(list.getDiscipline().getShortName());
         row.createCell(1).setCellValue(list.getDiscipline().getName());
-        ExcelUtils.fillSecondSubheading(row, index + 2, (int) RD1count + index);
+        Utils.fillSecondSubheading(row, index + 2, (int) RD1count + index);
         RDrow = index + 1;
         index++;
         continue;
@@ -384,7 +384,7 @@ public class PlansNPCreate {
         } else {
           targetIndex += (int) RD3count;
         }
-        ExcelUtils.fillProfilePack(row, index + 2, targetIndex, RDrow);
+        Utils.fillProfilePack(row, index + 2, targetIndex, RDrow);
         index++;
         continue;
       }
@@ -438,7 +438,7 @@ public class PlansNPCreate {
       //            fillBasicCell(row,index, list);
       index++;
     }
-    ExcelUtils.fillLastRow(sheet, index, M22, secondComponent);
+    Utils.fillLastRow(sheet, index, M22, secondComponent);
   }
 
   //    public static void fillBasicCell(Row row ,int index, PlansRow list) {
@@ -466,7 +466,7 @@ public class PlansNPCreate {
         creditSemesters.add(semester.getSemester());
       }
     }
-    row.createCell(2).setCellValue(ExcelUtils.formatSemesters(examSemesters));
-    row.createCell(3).setCellValue(ExcelUtils.formatSemesters(creditSemesters));
+    row.createCell(2).setCellValue(Utils.formatSemesters(examSemesters));
+    row.createCell(3).setCellValue(Utils.formatSemesters(creditSemesters));
   }
 }

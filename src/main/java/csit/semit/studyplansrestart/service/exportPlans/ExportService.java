@@ -1,6 +1,6 @@
 package csit.semit.studyplansrestart.service.exportPlans;
 
-import csit.semit.studyplansrestart.config.ExcelUtils;
+import csit.semit.studyplansrestart.config.Utils;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import lombok.NonNull;
@@ -26,7 +26,7 @@ public class ExportService {
     mainInformation.createSheet(workbook, curriculum_id);
     plansNPCreate.fillCell(plansSheet, curriculum_id);
     title.titleSheet(workbook);
-    ExcelUtils.setStyle(workbook);
+    Utils.setStyle(workbook);
     try (FileOutputStream fileOut = new FileOutputStream("example.xlsx")) {
       workbook.write(fileOut);
       workbook.close();

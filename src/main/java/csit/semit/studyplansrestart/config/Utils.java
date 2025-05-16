@@ -20,7 +20,7 @@ import org.apache.poi.ss.util.CellRangeAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ExcelUtils {
+public class Utils {
   private static final Logger log = LoggerFactory.getLogger(ImportService.class);
 
   public static String getStringCellValue(Cell cell) {
@@ -646,6 +646,17 @@ public class ExcelUtils {
           }
         }
       }
+    }
+  }
+
+  public static String getLanguageByStudyForm(String studyForm) {
+    if (studyForm.endsWith("e")) {
+      return "English";
+    }
+    if (studyForm.endsWith("f")) {
+      return "France";
+    } else {
+      return "Ukrainian";
     }
   }
 }

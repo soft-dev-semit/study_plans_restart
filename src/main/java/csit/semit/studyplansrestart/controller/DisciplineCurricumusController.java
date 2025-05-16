@@ -29,4 +29,11 @@ public class DisciplineCurricumusController {
     }
     return ResponseEntity.ofNullable(false);
   }
+
+  @PostMapping("/plans/create")
+  public ResponseEntity<?> createPlansFromTemplate(
+      @RequestBody long curriculum_id, @RequestBody long package_id, @RequestBody String suffix) {
+    disciplineCurriculumService.createNewPlansForGroup(curriculum_id, package_id, suffix);
+    return ResponseEntity.ok(true);
+  }
 }
