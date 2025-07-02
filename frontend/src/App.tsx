@@ -13,10 +13,9 @@ import Navbar from './components/Navbar'
 import { Box } from '@mui/material'
 
 const Plans = lazy(() => import("./pages/Plans"))
-const Profile = lazy(() => import("./pages/Profile"))
 const Import = lazy(() => import("./pages/Import"))
 const StudyLoad = lazy(() => import("./pages/StudyLoad"))
-const Export = lazy(() => import("./pages/Export"))
+const Instruction = lazy(() => import("./pages/Instruction"))
 
 // Компонент-обертка для layout
 const Layout = () => {
@@ -47,16 +46,15 @@ function App() {
 	const router = createBrowserRouter(
 		createRoutesFromElements(
 			<Route element={<Layout />}>
-				<Route path="/" element={<Navigate to="/plans" replace />} />
-				<Route path='/profile' element={<Profile />} />
+				<Route path='/' element={<Navigate to='/instruction' replace />} />
 				<Route path='/plans' element={<Plans />} />
 				<Route path='/plans/:curriculumId' element={<Plans />} />
 				<Route path='/import' element={<Import />} />
-				<Route path='/export' element={<Export />} />
 				<Route path='/study-load' element={<StudyLoad />} />
+				<Route path='/instruction' element={<Instruction />} />
 			</Route>
 		)
-	);
+	)
 
 	return (
 		<SnackbarProvider maxSnack={3}>

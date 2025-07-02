@@ -39,7 +39,9 @@ public class GroupService {
 
   public List<GroupAndCurriculumId> findAllGroupAndCurriculumId() {
     return groupRepository.findAll().stream()
-        .map(group -> new GroupAndCurriculumId(group.getId(), group.getName()))
+        .map(
+            group ->
+                new GroupAndCurriculumId(group.getCurriculum().getId(), group.getName(), false))
         .collect(Collectors.toList());
   }
 }

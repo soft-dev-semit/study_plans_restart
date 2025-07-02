@@ -13,7 +13,7 @@ public interface DisciplineCurriculumRepository extends JpaRepository<Discipline
   List<DisciplineCurriculum> findDisciplineCurriculumByCurriculum(Curriculum curriculum_id);
 
   @Query(
-      "select dc from DisciplineCurriculum dc where dc.curriculum.id = :curriculum_id and dc.specializedDisciplinesPackage = null and dc.specializedDisciplinesPackage.id = :package_id")
+      "select dc from DisciplineCurriculum dc where dc.curriculum.id = :curriculum_id and (dc.specializedDisciplinesPackage is null or dc.specializedDisciplinesPackage.id = :package_id)")
   List<DisciplineCurriculum> disciplineCurriculumFilterForGroup(
       @Param("curriculum_id") long curriculum_id, @Param("package_id") long package_id);
 }

@@ -16,4 +16,5 @@ import lombok.ToString;
 public class GroupAndCurriculumId {
   private Long id;
   private String name;
+  private boolean template;
 }

@@ -1,20 +1,14 @@
 package csit.semit.studyplansrestart.service.exportPlans;
 
 import csit.semit.studyplansrestart.config.Utils;
+import csit.semit.studyplansrestart.dto.returnData.CourseInfo;
 import csit.semit.studyplansrestart.dto.returnData.PlansRow;
 import csit.semit.studyplansrestart.dto.returnData.SemesterDTO;
 import csit.semit.studyplansrestart.service.DisciplineCurriculumService;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.Font;
-import org.apache.poi.ss.usermodel.HorizontalAlignment;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.VerticalAlignment;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.springframework.stereotype.Service;
 
@@ -468,5 +462,71 @@ public class PlansNPCreate {
     }
     row.createCell(2).setCellValue(Utils.formatSemesters(examSemesters));
     row.createCell(3).setCellValue(Utils.formatSemesters(creditSemesters));
+  }
+
+  public static void createSheetBySeason(
+      Workbook workbook, List<CourseInfo> courseInfos, String season) {
+    Sheet sheet = workbook.createSheet(season);
+
+    CellStyle headerStyle = workbook.createCellStyle();
+    Font font = workbook.createFont();
+    font.setBold(true);
+    headerStyle.setFont(font);
+    headerStyle.setAlignment(HorizontalAlignment.CENTER);
+    headerStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+    headerStyle.setWrapText(true);
+    headerStyle.setBorderBottom(BorderStyle.THIN);
+    headerStyle.setBorderTop(BorderStyle.THIN);
+    headerStyle.setBorderLeft(BorderStyle.THIN);
+    headerStyle.setBorderRight(BorderStyle.THIN);
+
+    String[] headers = {
+      "#",
+      "Назва навчальної дисципліни",
+      "№ зп",
+      "Групи",
+      "Кількість груп",
+      "Кількість студентів",
+      "Курс",
+      "Семестер",
+      "Кредити ECTS",
+      "Всього",
+      "Лекції",
+      "Лабораторні",
+      "Практичні",
+      "Індивідуальні завдання",
+      "Заліки",
+      "Екзамени"
+    };
+
+    Row headerRow = sheet.createRow(0);
+    int index = 1;
+    for (CourseInfo courseInfo : courseInfos) {
+      Row row = sheet.createRow(index);
+      row.createCell(0).setCellValue(index);
+      row.createCell(1).setCellValue(courseInfo.getName());
+      row.createCell(2).setCellValue(courseInfo.getShortName());
+      row.createCell(3).setCellValue(courseInfo.getGroups());
+      row.createCell(4).setCellValue(courseInfo.getGroupCount());
+      row.createCell(5).setCellValue(courseInfo.getStudentCount());
+      row.createCell(6).setCellValue(courseInfo.getCourse());
+      row.createCell(7).setCellValue(courseInfo.getSemester());
+      row.createCell(8).setCellValue(courseInfo.getEcts());
+      row.createCell(9).setCellValue(courseInfo.getTotalHours());
+      row.createCell(10).setCellValue(courseInfo.getLectureHours());
+      row.createCell(11).setCellValue(courseInfo.getLabHours());
+      row.createCell(12).setCellValue(courseInfo.getPracticeHours());
+      row.createCell(13).setCellValue(courseInfo.getIndividualTask());
+      row.createCell(14).setCellValue(courseInfo.getHasCredit() ? "Так" : "Ні");
+      row.createCell(15).setCellValue(courseInfo.getHasExam() ? "Так" : "Ні");
+      index++;
+    }
+
+    for (int i = 0; i < headers.length; i++) {
+      Cell cell = headerRow.createCell(i);
+      cell.setCellValue(headers[i]);
+      cell.setCellStyle(headerStyle);
+      sheet.autoSizeColumn(i);
+    }
   }
 }

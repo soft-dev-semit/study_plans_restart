@@ -606,8 +606,8 @@ public class Utils {
     return result.toString();
   }
 
-  public static void setStyle(Workbook workbook) {
-    Sheet sheet = workbook.getSheet("План НП");
+  public static void setStyle(Workbook workbook, String sheatName) {
+    Sheet sheet = workbook.getSheet(sheatName);
     Font font = workbook.createFont();
     font.setFontName("Arial");
     font.setFontHeightInPoints((short) 20);
@@ -644,6 +644,33 @@ public class Utils {
           } else {
             cell.setCellStyle(cellStyle);
           }
+        }
+      }
+    }
+  }
+
+  public static void setStyleStudyLoad(Workbook workbook, String sheatName) {
+    Sheet sheet = workbook.getSheet(sheatName);
+    Font font = workbook.createFont();
+    CellStyle textStyle = workbook.createCellStyle();
+    textStyle.setFont(font);
+    textStyle.setAlignment(HorizontalAlignment.LEFT);
+    textStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+    textStyle.setWrapText(true);
+    textStyle.setBorderTop(BorderStyle.THIN); // Верхняя граница
+    textStyle.setBorderBottom(BorderStyle.THIN); // Нижняя граница
+    textStyle.setBorderLeft(BorderStyle.THIN); // Левая граница
+    textStyle.setBorderRight(BorderStyle.THIN); // Правая граница
+
+    for (int i = 1; i < sheet.getLastRowNum() + 1; i++) {
+      Row row = sheet.getRow(i);
+      if (row != null) {
+        for (int j = 0; j < 16; j++) {
+          Cell cell = row.getCell(j);
+          if (cell == null) {
+            cell = row.createCell(j);
+          }
+          cell.setCellStyle(textStyle);
         }
       }
     }

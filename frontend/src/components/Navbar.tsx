@@ -27,37 +27,32 @@ export default function Navbar() {
 
 
   return (
-		<AppBar 
-			position='static' 
-			sx={{ 
-				backgroundColor: 'white', 
+		<AppBar
+			position='static'
+			sx={{
+				backgroundColor: 'white',
 				boxShadow: 1,
 				m: 0,
 				width: '100%',
 			}}
 		>
-			<Toolbar 
+			<Toolbar
 				disableGutters
-				sx={{ 
+				sx={{
 					p: 0,
 					minHeight: 'auto',
 				}}
 			>
-				<Box sx={{ 
-					display: "flex", 
-					width: '100%',
-					'& > button': {
-						flexBasis: 0,
-						flexGrow: 1,
-					}
-				}}>
-					<CustomButton
-						color='primary'
-						variant={isActive('/profile') ? 'contained' : 'text'}
-						onClick={() => navigate('/profile')}
-					>
-						Профіль
-					</CustomButton>
+				<Box
+					sx={{
+						display: 'flex',
+						width: '100%',
+						'& > button': {
+							flexBasis: 0,
+							flexGrow: 1,
+						},
+					}}
+				>
 					<CustomButton
 						color='primary'
 						variant={isActive('/plans') ? 'contained' : 'text'}
@@ -81,10 +76,10 @@ export default function Navbar() {
 					</CustomButton>
 					<CustomButton
 						color='primary'
-						variant={isActive('/export') ? 'contained' : 'text'}
-						onClick={() => navigate('/export')}
+						variant={isActive('/instruction') ? 'contained' : 'text'}
+						onClick={() => navigate('/instruction')}
 					>
-						Експорт
+						Инструкция
 					</CustomButton>
 				</Box>
 			</Toolbar>

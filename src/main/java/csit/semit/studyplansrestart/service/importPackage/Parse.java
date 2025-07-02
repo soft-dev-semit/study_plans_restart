@@ -116,43 +116,45 @@ public class Parse {
   }
 
   public void addPlanFromExcel(Sheet planSheet, long curriculum_id) {
-    int lastColumn = importUtils.determineNumberOfSemesters(planSheet.getRow(10));
-    Map<String, String> stringStringHashMap = new HashMap<>();
-    for (int i = 11; i <= planSheet.getLastRowNum(); i++) {
-      Row row = planSheet.getRow(i);
-      if (row == null) continue;
-      String shortNameCell =
-          Utils.getStringCellValue(row.getCell(0, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK));
-      String nameCell =
-          Utils.getStringCellValue(row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK));
+    if (planSheet != null) {
+      int lastColumn = importUtils.determineNumberOfSemesters(planSheet.getRow(10));
+      Map<String, String> stringStringHashMap = new HashMap<>();
+      for (int i = 11; i <= planSheet.getLastRowNum(); i++) {
+        Row row = planSheet.getRow(i);
+        if (row == null) continue;
+        String shortNameCell =
+            Utils.getStringCellValue(row.getCell(0, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK));
+        String nameCell =
+            Utils.getStringCellValue(row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK));
 
-      if (nameCell == null || shortNameCell == null || nameCell.trim().isEmpty()) {
-        continue;
-      }
-
-      switch (nameCell) {
-        case "Загальна кількість за термін підготовки" -> {
-          return;
+        if (nameCell == null || shortNameCell == null || nameCell.trim().isEmpty()) {
+          continue;
         }
-        case "Обов'язкові освітні компоненти",
-            "Загальна підготовка",
-            "Спеціальна (фахова) підготовка",
-            "Вибіркові освітні компоненти",
-            "Профільна підготовка" -> createExceptionDiscipline(
-            nameCell, shortNameCell, curriculum_id);
-        default -> {
-          if (nameCell.contains("Профільований пакет дисциплін")) {
-            stringStringHashMap.clear();
-            createExceptionDiscipline(nameCell, shortNameCell, curriculum_id);
-            stringStringHashMap = parseString(nameCell);
-          } else if (!stringStringHashMap.isEmpty()
-              && !nameCell.startsWith("Дисципліни вільного")) {
-            specializedDisciplineCurriculum(
-                row, nameCell, shortNameCell, curriculum_id, lastColumn, stringStringHashMap);
-          } else if (nameCell.startsWith("Дисципліни вільного")) {
-            stringStringHashMap.clear();
-          } else {
-            createRegularDiscipline(row, nameCell, shortNameCell, curriculum_id, lastColumn);
+
+        switch (nameCell) {
+          case "Загальна кількість за термін підготовки" -> {
+            return;
+          }
+          case "Обов'язкові освітні компоненти",
+              "Загальна підготовка",
+              "Спеціальна (фахова) підготовка",
+              "Вибіркові освітні компоненти",
+              "Профільна підготовка" -> createExceptionDiscipline(
+              nameCell, shortNameCell, curriculum_id);
+          default -> {
+            if (nameCell.contains("Профільований пакет дисциплін")) {
+              stringStringHashMap.clear();
+              createExceptionDiscipline(nameCell, shortNameCell, curriculum_id);
+              stringStringHashMap = parseString(nameCell);
+            } else if (!stringStringHashMap.isEmpty()
+                && !nameCell.startsWith("Дисципліни вільного")) {
+              specializedDisciplineCurriculum(
+                  row, nameCell, shortNameCell, curriculum_id, lastColumn, stringStringHashMap);
+            } else if (nameCell.startsWith("Дисципліни вільного")) {
+              stringStringHashMap.clear();
+            } else {
+              createRegularDiscipline(row, nameCell, shortNameCell, curriculum_id, lastColumn);
+            }
           }
         }
       }

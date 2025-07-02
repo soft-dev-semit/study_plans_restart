@@ -1,11 +1,13 @@
 package csit.semit.studyplansrestart.service.exportLoad;
 
-import csit.semit.studyplansrestart.controller.ImportController;
 import csit.semit.studyplansrestart.dto.returnData.CourseInfo;
 import csit.semit.studyplansrestart.entity.AcademGroup;
 import csit.semit.studyplansrestart.entity.HoursDiscSemester;
 import csit.semit.studyplansrestart.repository.GroupRepository;
 import csit.semit.studyplansrestart.repository.SemesterRepository;
+import csit.semit.studyplansrestart.service.exportPlans.ExportService;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -18,9 +20,11 @@ import org.springframework.stereotype.Service;
 public class Calculate {
   @Autowired private SemesterRepository semesterRepository;
   @Autowired private GroupRepository groupRepository;
+  @Autowired protected ExportService exportService;
+
   private final Map<Long, Integer> courseMap = new HashMap<>();
   private final Map<Long, String> groupMap = new HashMap<>();
-  private static final Logger logger = LoggerFactory.getLogger(ImportController.class);
+  private static final Logger logger = LoggerFactory.getLogger(Calculate.class);
 
   public void getGroup() {
     List<AcademGroup> groupList = groupRepository.findAll();
@@ -37,7 +41,6 @@ public class Calculate {
       String groupName = academGroup.getName();
       int year = academGroup.getYear();
       boolean matches = pattern.matcher(groupName).matches();
-
       int course;
       if (maxYear == year && !matches) {
         course = 1;
@@ -59,11 +62,6 @@ public class Calculate {
       return Collections.emptyList();
     }
 
-    List<HoursDiscSemester> allSemesters = semesterRepository.findAll();
-    if (allSemesters.isEmpty()) {
-      return Collections.emptyList();
-    }
-
     List<CourseInfo> courses = new ArrayList<>(courseMap.size() * 2);
 
     boolean isAutumn = "autumn".equals(season);
@@ -71,7 +69,18 @@ public class Calculate {
     for (Map.Entry<Long, Integer> entry : courseMap.entrySet()) {
       Long curriculumId = entry.getKey();
       Integer course = entry.getValue();
-      String groupName = groupMap.get(curriculumId);
+      AcademGroup group = groupRepository.findByCurriculumId(curriculumId);
+
+      List<HoursDiscSemester> allSemesters =
+          semesterRepository.filterSemesterByCurriculumId(curriculumId);
+      logger.info(
+          "group name {},curriculum id: {}, semester size: {}",
+          group.getName(),
+          curriculumId,
+          allSemesters.size());
+      if (allSemesters.isEmpty()) {
+        continue;
+      }
 
       for (HoursDiscSemester semester : allSemesters) {
         if (!semester.getDisciplineCurriculum().getCurriculum().getId().equals(curriculumId)) {
@@ -81,13 +90,14 @@ public class Calculate {
             course >= 5
                 ? (semester.getSemester() + 1) / 2 == course - 4
                 : (semester.getSemester() + 1) / 2 == course;
+        logger.info("groupName {}, semesterByCourse {}", group.getName(), semesterByCourse);
         if (!semesterByCourse) {
           continue;
         }
 
         boolean isSemesterOdd = semester.getSemester() % 2 == 1;
         if ((isAutumn && isSemesterOdd) || (!isAutumn && !isSemesterOdd)) {
-          courses.add(fillCourseInfo(semester, course, groupName));
+          courses.add(fillCourseInfo(semester, course, group));
         }
       }
     }
@@ -136,17 +146,22 @@ public class Calculate {
       if (existingCourse != null) {
         String existingGroups = existingCourse.getGroups();
         String newGroups = course.getGroups();
+        int existStudent = existingCourse.getStudentCount();
+        int newStudent = course.getStudentCount();
+        int existGroupCount = existingCourse.getGroupCount();
+        int newGroupCount = course.getGroupCount();
 
         Set<String> mergedGroups = new TreeSet<>();
-
         if (existingGroups != null && !existingGroups.isEmpty()) {
-          Collections.addAll(mergedGroups, existingGroups.split(", "));
+          Collections.addAll(mergedGroups, existingGroups.split(",\\s*"));
         }
         if (newGroups != null && !newGroups.isEmpty()) {
-          Collections.addAll(mergedGroups, newGroups.split(", "));
+          Collections.addAll(mergedGroups, newGroups.split(",\\s*"));
         }
 
         existingCourse.setGroups(String.join(", ", mergedGroups));
+        existingCourse.setStudentCount(existStudent + newStudent);
+        existingCourse.setGroupCount(existGroupCount + newGroupCount);
       } else {
         uniqueCourses.put(key, course);
       }
@@ -154,13 +169,15 @@ public class Calculate {
     return uniqueCourses;
   }
 
-  private CourseInfo fillCourseInfo(HoursDiscSemester semester, int course, String groupName) {
+  private CourseInfo fillCourseInfo(HoursDiscSemester semester, int course, AcademGroup group) {
     return new CourseInfo(
         semester.getDisciplineCurriculum().getDiscipline().getName(),
         semester.getDisciplineCurriculum().getDiscipline().getShortName(),
-        groupName,
+        group.getName(),
         course,
         semester.getSemester(),
+        group.getStudentAmount(),
+        1,
         semester.getCreditsECTS(),
         calculateTotalHours(semester),
         semester.getDisciplineCurriculum().getLecHours(),
@@ -175,5 +192,12 @@ public class Calculate {
     return semester.getDisciplineCurriculum().getLecHours()
         + semester.getDisciplineCurriculum().getLabHours()
         + semester.getDisciplineCurriculum().getPracticeHours();
+  }
+
+  public void exportStudyLoad(OutputStream out) throws IOException {
+    Map<String, List<CourseInfo>> courseInfoMap = new HashMap<>();
+    courseInfoMap.put("autumn", getCoursesBySemester("autumn"));
+    courseInfoMap.put("spring", getCoursesBySemester("spring"));
+    exportService.exportStudyLoad(courseInfoMap, out);
   }
 }

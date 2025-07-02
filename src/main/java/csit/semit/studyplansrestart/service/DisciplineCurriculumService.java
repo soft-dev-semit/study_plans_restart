@@ -10,26 +10,30 @@ import csit.semit.studyplansrestart.dto.returnData.SemesterDTO;
 import csit.semit.studyplansrestart.entity.AcademGroup;
 import csit.semit.studyplansrestart.entity.Curriculum;
 import csit.semit.studyplansrestart.entity.DisciplineCurriculum;
+import csit.semit.studyplansrestart.entity.HoursDiscSemester;
 import csit.semit.studyplansrestart.repository.DisciplineCurriculumRepository;
+import csit.semit.studyplansrestart.repository.SemesterRepository;
 import csit.semit.studyplansrestart.service.importPackage.ImportService;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class DisciplineCurriculumService {
   ModelMapper modelMapper;
   DisciplineCurriculumRepository disciplineCurriculumRepository;
   CurriculumService curriculumService;
   GroupService groupService;
+  SemesterRepository semesterRepository;
 
   private static final Logger LOG = LoggerFactory.getLogger(ImportService.class);
 
@@ -95,11 +99,15 @@ public class DisciplineCurriculumService {
 
   @Transactional
   public void createNewPlansForGroup(long curriculum_id, long package_id, String suffix) {
+    log.info("create new plan with group");
     List<DisciplineCurriculum> disciplineCurricula =
         disciplineCurriculumRepository.disciplineCurriculumFilterForGroup(
             curriculum_id, package_id);
     if (!disciplineCurricula.isEmpty()) {
-      Curriculum curriculum = curriculumService.getById(curriculum_id);
+      Curriculum curriculum =
+          curriculumService.createNewCurriculum(curriculumService.getById(curriculum_id));
+      log.info("new curriculum : {}", curriculum);
+
       String groupName =
           curriculum.getDepartment().getName()
               + "-"
@@ -107,6 +115,8 @@ public class DisciplineCurriculumService {
               + curriculum.getYear()
               + curriculum.getStudyForm()
               + suffix;
+
+      log.info("new groupName : {}", groupName);
 
       AcademGroup group =
           groupService.create(
@@ -116,13 +126,41 @@ public class DisciplineCurriculumService {
                   .year(curriculum.getYear())
                   .language(Utils.getLanguageByStudyForm(curriculum.getStudyForm()))
                   .build());
+      log.info("new group : {}", group);
+
       for (DisciplineCurriculum disciplineCurriculum : disciplineCurricula) {
-        DisciplineCurriculum copy = new DisciplineCurriculum();
-        BeanUtils.copyProperties(disciplineCurriculum, copy);
-        copy.setId(null);
-        copy.setAcademGroup(group);
-        disciplineCurriculumRepository.save(copy);
+        DisciplineCurriculum copy =
+            createDisciplineCurriculum(disciplineCurriculum, group, curriculum);
+
+        for (HoursDiscSemester s : disciplineCurriculum.getSemesters()) {
+          HoursDiscSemester sCopy = new HoursDiscSemester();
+
+          sCopy.setAuditHours(s.getAuditHours());
+          sCopy.setSemester(s.getSemester());
+          sCopy.setCreditsECTS(s.getCreditsECTS());
+          sCopy.setHasExam(s.isHasExam());
+          sCopy.setHasCredit(s.isHasCredit());
+          sCopy.setDisciplineCurriculum(copy);
+
+          semesterRepository.save(sCopy);
+        }
       }
     }
+  }
+
+  private DisciplineCurriculum createDisciplineCurriculum(
+      DisciplineCurriculum disciplineCurriculum, AcademGroup group, Curriculum curriculum) {
+    DisciplineCurriculum copy = new DisciplineCurriculum();
+    copy.setAcademGroup(group);
+    copy.setDiscipline(disciplineCurriculum.getDiscipline());
+    copy.setCurriculum(curriculum);
+    copy.setFileURL(disciplineCurriculum.getFileURL());
+    copy.setPracticeHours(disciplineCurriculum.getPracticeHours());
+    copy.setLecHours(disciplineCurriculum.getLecHours());
+    copy.setSpecializedDisciplinesPackage(disciplineCurriculum.getSpecializedDisciplinesPackage());
+    copy.setIndividualTaskType(disciplineCurriculum.getIndividualTaskType());
+    copy.setLabHours(disciplineCurriculum.getLabHours());
+    disciplineCurriculumRepository.save(copy);
+    return copy;
   }
 }

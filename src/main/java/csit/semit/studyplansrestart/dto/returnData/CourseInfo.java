@@ -13,8 +13,8 @@ public class CourseInfo {
   private String groups;
   private Integer course;
   private Integer semester;
-  //    private Integer studentCount;
-  //    private Integer groupCount;
+  private Integer studentCount;
+  private Integer groupCount;
   private Integer ects;
   private Integer totalHours;
   private Integer lectureHours;

@@ -2,23 +2,30 @@ package csit.semit.studyplansrestart.service;
 
 import csit.semit.studyplansrestart.dto.create.CreateCurriculumDTO;
 import csit.semit.studyplansrestart.dto.returnData.GroupAndCurriculumId;
+import csit.semit.studyplansrestart.dto.returnData.SpecializedDisciplinesPackageDTO;
 import csit.semit.studyplansrestart.entity.Curriculum;
+import csit.semit.studyplansrestart.entity.SpecializedDisciplinesPackage;
 import csit.semit.studyplansrestart.repository.CurriculumRepository;
 import csit.semit.studyplansrestart.repository.DepartmentRepository;
+import csit.semit.studyplansrestart.repository.SpecializedDisciplinesPackageRepository;
 import csit.semit.studyplansrestart.repository.SpecialtyRepository;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class CurriculumService {
   ModelMapper modelMapper;
   CurriculumRepository curriculumRepository;
   SpecialtyRepository specialtyRepository;
   DepartmentRepository departmentRepository;
+  SpecializedDisciplinesPackageRepository packageRepository;
 
   public Long create(CreateCurriculumDTO curriculumDTO) {
     Curriculum curriculum = modelMapper.map(curriculumDTO, Curriculum.class);
@@ -74,7 +81,29 @@ public class CurriculumService {
                         + "-"
                         + curriculum.getSpecialty().getNumber()
                         + curriculum.getYear()
-                        + curriculum.getStudyForm())))
+                        + curriculum.getStudyForm()),
+                    true))
         .collect(Collectors.toList());
+  }
+
+  public List<SpecializedDisciplinesPackageDTO> getPackageByCurriculumId(long curriculumId) {
+    List<SpecializedDisciplinesPackage> packages =
+        packageRepository.findSpecializedDisciplinesPackageByCurriculumId(curriculumId);
+    List<SpecializedDisciplinesPackageDTO> list = new ArrayList<>();
+    for (SpecializedDisciplinesPackage disciplinesPackage : packages) {
+      list.add(modelMapper.map(disciplinesPackage, SpecializedDisciplinesPackageDTO.class));
+    }
+    return list;
+  }
+
+  public Curriculum createNewCurriculum(Curriculum oldCurriculum) {
+    Curriculum curriculum = new Curriculum();
+    curriculum.setDepartment(oldCurriculum.getDepartment());
+    curriculum.setYear(oldCurriculum.getYear());
+    curriculum.setSpecialty(oldCurriculum.getSpecialty());
+    curriculum.setStudyForm(oldCurriculum.getStudyForm());
+    curriculum.setApprovementURL(oldCurriculum.getApprovementURL());
+    curriculum.setFile_url(oldCurriculum.getFile_url());
+    return curriculumRepository.save(curriculum);
   }
 }
