@@ -10,7 +10,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CreditsInfo {
-    private int first;
-    private int second;
-    private boolean has;
+  private int first;
+  private int second;
+  private boolean has;
 }

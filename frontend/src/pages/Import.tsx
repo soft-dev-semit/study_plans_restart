@@ -1,28 +1,20 @@
 import React, { useState } from 'react'
-import { Box, Container, Typography } from '@mui/material'
+import { Container, Typography } from '@mui/material'
 import { Requests } from '../api/Requests'
-import DragAndDrop from '../components/DragAndDrop'
-import DirectoryPicker from '../components/DirectoryPicker'
+import UniversalUploader from '../components/UniversalUploader'
 import JSZip from 'jszip'
 
 export default function Import() {
 	const [isLoading, setIsLoading] = useState(false)
 
-	const handleFileSelected = async (file:File) => {
+	const handleFileSelected = async (file: File) => {
 		setIsLoading(true)
 		try {
 			let response
-
-			if (Array.isArray(file) && file.length > 1) {
-				console.log('Multiple files selected')
-				response = await Requests.importMultiFile(file)
-			} else {
-				console.log('Single file selected')
-				response = await Requests.importSingleFile(
-					Array.isArray(file) ? file[0] : file
-				)
-			}
-
+			console.log('Single file selected')
+			response = await Requests.importSingleFile(
+				Array.isArray(file) ? file[0] : file
+			)
 			console.log(response)
 		} catch (error) {
 			console.error('Ошибка:', error)
@@ -37,21 +29,15 @@ export default function Import() {
 	) => {
 		setIsLoading(true)
 		try {
-			// Создаем zip-архив
 			const zip = new JSZip()
 			files.forEach(file => {
 				const relativePath = file.webkitRelativePath
 				zip.file(relativePath, file)
 			})
-
 			const zipBlob = await zip.generateAsync({ type: 'blob' })
-
 			const formData = new FormData()
 			formData.append('file', zipBlob, `${directoryPath}.zip`)
-
-			// Отправляем zip-архив на сервер
 			const response = await Requests.importDirectory(formData)
-
 			console.log('Directory imported successfully:', response.data)
 		} catch (error) {
 			console.error('Error importing directory:', error)
@@ -59,7 +45,6 @@ export default function Import() {
 			setIsLoading(false)
 		}
 	}
-
 
 	return (
 		<Container maxWidth='md' sx={{ mt: 4 }}>
@@ -72,14 +57,24 @@ export default function Import() {
 				align='center'
 				color='text.secondary'
 			>
-				Завантажте Excel файл з навчальним планом
+				Завантажте Excel або Word файл з навчальним планом або виберіть
+				директорію
 			</Typography>
-			<Box sx={{ mt: 4 }}>
-				<DragAndDrop onFileSelected={handleFileSelected} />
-			</Box>
-			<Box sx={{ mt: 4 }}>
-				<DirectoryPicker onDirectorySelected={handleDirectorySelected} />
-			</Box>
+
+			<UniversalUploader
+				onFileSelected={handleFileSelected}
+				onDirectorySelected={handleDirectorySelected}
+				acceptedFileTypes={{
+					'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': [
+						'.xlsx',
+					],
+					'application/vnd.ms-excel': ['.xls'],
+					// 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+					// 	['.docx'],
+					// 'application/msword': ['.doc'],
+				}}
+				maxFiles={1}
+			/>
 		</Container>
 	)
 }

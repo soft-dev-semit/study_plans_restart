@@ -14,14 +14,8 @@ interface PlanItem {
   labHours: number;
   practiceHours: number;
   individualTask: string | boolean;
-  hasCredit: boolean; // Изменено с Credit на hasCredit для соответствия ошибкам
-  hasExam: boolean;   // Изменено с Exam на hasExam для соответствия ошибкам
-}
-
-// Интерфейс для ответа от API
-interface ApiResponse {
-  autumn: PlanItem[];
-  spring: PlanItem[];
+  hasCredit: boolean; 
+  hasExam: boolean;  
 }
 
  const CenteredCell = styled(TableCell)(({ theme }) => ({
@@ -35,57 +29,38 @@ interface ApiResponse {
  }))
 
 export default function StudyLoad() {
-	// Теперь используем правильные типы вместо never[]
-	const [allPlans, setAllPlans] = useState<ApiResponse>({
-		autumn: [],
-		spring: [],
-	})
 	const [selectedSeason, setSelectedSeason] = useState<'autumn' | 'spring'>(
 		'autumn'
 	)
-	const [displayedPlans, setDisplayedPlans] = useState<PlanItem[]>([])
-	const [loading, setLoading] = useState<boolean>(true)
+	const [displayedPlans, setDisplayedPlans] = useState<PlanItem[]>([]);
+	const [loading, setLoading] = useState<boolean>(true);
 
 	useEffect(() => {
 		const fetchData = async () => {
 			setLoading(true)
 			try {
-				const resp = await Requests.getCourse()
-
+				console.log(selectedSeason);
+				const resp = await Requests.getCourse(selectedSeason);
 				if (resp && typeof resp === 'object') {
-					const typedResp = resp as ApiResponse
-					setAllPlans({
-						autumn: Array.isArray(typedResp.autumn) ? typedResp.autumn : [],
-						spring: Array.isArray(typedResp.spring) ? typedResp.spring : [],
-					})
-
-					// Устанавливаем планы для текущего выбранного сезона
-					setDisplayedPlans(
-						Array.isArray(typedResp[selectedSeason])
-							? typedResp[selectedSeason]
-							: []
-					)
+					setDisplayedPlans(resp ? resp : []);
 				} else {
-					console.error('Unexpected response format')
-					setAllPlans({ autumn: [], spring: [] })
-					setDisplayedPlans([])
+					console.error('Unexpected response format');
+					setDisplayedPlans([]);
 				}
 			} catch (error) {
-				console.error('Something went wrong: ' + error)
-				setAllPlans({ autumn: [], spring: [] })
-				setDisplayedPlans([])
+				console.error('Something went wrong: ' + error);
+				setDisplayedPlans([]);
 			} finally {
-				setLoading(false)
+				setLoading(false);
 			}
 		}
 
 		fetchData()
 	}, [selectedSeason])
 
-	// Обновление отображаемых данных при изменении сезона
 	useEffect(() => {
-		setDisplayedPlans(allPlans[selectedSeason] || [])
-	}, [selectedSeason, allPlans])
+		console.log("displayedPlans обновился:", displayedPlans);
+	}, [displayedPlans]);
 
 	// Типизируем параметр event
 	const handleSeasonChange = (event: SelectChangeEvent) => {
@@ -104,7 +79,7 @@ export default function StudyLoad() {
 						label='Выберите семестр'
 						onChange={handleSeasonChange}
 					>
-						<MenuItem value='autumn'>Осень</MenuItem>
+						<MenuItem value='autumn'>Осінь</MenuItem>
 						<MenuItem value='spring'>Весна</MenuItem>
 					</Select>
 				</FormControl>

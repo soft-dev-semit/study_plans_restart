@@ -10,28 +10,35 @@ import lombok.*;
 @Entity
 @Table(name = "semesters")
 public class HoursDiscSemester {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private int auditHours;
-    private int creditsECTS;
-    private boolean hasExam;
-    private boolean hasCredit;
-    private int semester;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "discipline_curriculum_id")
-    private DisciplineCurriculum disciplineCurriculum;
+  private int auditHours;
+  private int creditsECTS;
+  private boolean hasExam;
+  private boolean hasCredit;
+  private int semester;
 
-    @Override
-    public String toString() {
-        return "Semester{" +
-                "id=" + id +
-                ", auditHours=" + auditHours +
-                ", creditsECTS=" + creditsECTS +
-                ", hasExam=" + hasExam +
-                ", hasCredit=" + hasCredit +
-                ", semester=" + semester +
-                '}';
-    }
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "discipline_curriculum_id")
+  private DisciplineCurriculum disciplineCurriculum;
+
+  @Override
+  public String toString() {
+    return "Semester{"
+        + "id="
+        + id
+        + ", auditHours="
+        + auditHours
+        + ", creditsECTS="
+        + creditsECTS
+        + ", hasExam="
+        + hasExam
+        + ", hasCredit="
+        + hasCredit
+        + ", semester="
+        + semester
+        + '}';
+  }
 }
